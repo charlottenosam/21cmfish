@@ -2,17 +2,17 @@
 21cmfish
 ========
 
-.. image:: https://img.shields.io/travis/charlottenosam/A python package for doing Fisher matrix analyses with 21cmFAST.svg
-        :target: https://travis-ci.org/charlottenosam/A python package for doing Fisher matrix analyses with 21cmFAST
+.. image:: https://img.shields.io/travis/charlottenosam/21cmfish.svg
+        :target: https://travis-ci.org/charlottenosam/21cmfish
 
-.. image:: https://img.shields.io/pypi/v/A python package for doing Fisher matrix analyses with 21cmFAST.svg
-        :target: https://pypi.python.org/pypi/A python package for doing Fisher matrix analyses with 21cmFAST
+.. image:: https://img.shields.io/pypi/v/21cmfish.svg
+        :target: https://pypi.python.org/pypi/21cmfish
 
 
-A python package for doing Fisher matrix analyses with 21cmFAST
+21cmfish
 
 * Free software: 3-clause BSD license
-* Documentation: (COMING SOON!) https://charlottenosam.github.io/A python package for doing Fisher matrix analyses with 21cmFAST.
+* Documentation: (COMING SOON!) https://charlottenosam.github.io/21cmfish.
 
 Features
 --------
