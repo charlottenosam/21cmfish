@@ -6,6 +6,11 @@ cache:
     - $HOME/.cache/pip
     - $HOME/.ccache  # https://github.com/travis-ci/travis-ci/issues/5853
 
+env:
+      global:
+        # Doctr deploy key for charlottenosam/21cmfish
+        - secure: "A4HoSGfFX1f6/6RBVekwnMjQAeO9H5fb7Bp4gyKgWFobP+o9xiedQ7ZN4QyN9eGAtGHNPkxlZL7LxqO5iz7WCzXuxBcm6spdB76ORxvty44n6aPRaxwuyJk5xTbZkrnTQRVgg3Rb2R42Mxe44X8QpcKIAgBzgEUku8znOjC0EoS/mLt7mEdiIvElCUwAcDDGL2vMh4Ngm59kyXBp+bPD0O1UL66NdpfaRplaDbOEEmsWRW6xetTw2yJy/UmcOV/0CUBHAd/ErOvYMLTquubRsnXpK+h4Jg2OIVFDeu1H7Lky0AxOt+Qv2xqiKmLUj5Qsuk883YMmdfXtyQHDUwkGbaJ8mhXGXz7VyvCg1/BPxFcVqd0OzrjBV3LAcWqFinBoVH0bGm7NaKuqXkrzT54AtL6AoFZMVFBPlrrfAYaaOFertc9kxjl40Y6tngmN5PxRwnWq7nfe8WZ2yYuMEFpd3f28lNByRcdn5ufF1Mzb1nFsn1WNYorE4lPCf5c8Z6xtZHUDB3QXzbsPe546PlrWLsOItARj2MY8qS0IUM+ekOodv1ofPBxte32z0Cus35XIg/my8jTe9ZyWswOzBJN60Z8GzST/cLo6byFhqKE8yOHC7+E66codM7PfGVrNrAo2F/nriUBGrce0cBamDVs7IR8gVcEyd9K1XwRZ1vy58Ho="
+
 install:
   # The versions of pip and numpy that come pre-installed are often too old and
   # can cause problems. Upgrade them.
@@ -20,4 +25,7 @@ script:
   - coverage report -m  # Generate test coverage report.
   - codecov  # Upload the report to codecov.
   - flake8  # Enforce code style ('relaxed' line length limit is set in .flake8 config file).
+  - set -e
   - make -C docs html  # Build the documentation.
+  - pip install doctr
+  - doctr deploy --built-docs docs/build/html .  # Publish the documentation.

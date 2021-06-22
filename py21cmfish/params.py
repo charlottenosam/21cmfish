@@ -1,5 +1,4 @@
 import py21cmfast as p21c
-from py21cmfast import plotting
 import os, sys
 import numpy as np
 import glob

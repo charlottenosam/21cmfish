@@ -7,7 +7,7 @@ import subprocess
 from pkg_resources import DistributionNotFound, get_distribution
 
 try:
-    __version__ = get_distribution("emcee").version
+    __version__ = get_distribution("21cmfish").version
 except DistributionNotFound:
     __version__ = "unknown version"
 

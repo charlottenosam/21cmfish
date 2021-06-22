@@ -1,8 +1,6 @@
 import numpy as np
 from matplotlib.patches import Ellipse
 import matplotlib.pyplot as plt
-import seaborn as sns
-
 
 def Fij(dObs_dtheta_i, dObs_dtheta_j,
         sigma_obs=1, sigma_mod=0, axis=None):
