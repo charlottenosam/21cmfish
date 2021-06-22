@@ -2,7 +2,7 @@
 API
 =====
 
-This page details the methods and classes provided by the ``py21cmfish`` module.
+This page details the classes and methods provided by the ``py21cmfish`` module.
 
 Parameters Class
 ===================
