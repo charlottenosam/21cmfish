@@ -5,6 +5,6 @@ exclude =
     build,
     dist,
     versioneer.py,
-    21cmfish/_version.py,
+    py21cmfish/_version.py,
     docs/source/conf.py
 max-line-length = 115

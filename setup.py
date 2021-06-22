@@ -34,7 +34,7 @@ with open(path.join(here, 'requirements.txt')) as requirements_file:
 
 
 setup(
-    name='21cmfish',
+    name='py21cmfish',
     version=versioneer.get_version(),
     cmdclass=versioneer.get_cmdclass(),
     description="A python package for doing Fisher matrix analyses with 21cmFAST",
@@ -51,7 +51,7 @@ setup(
     },
     include_package_data=True,
     package_data={
-        '21cmfish': [
+        'py21cmfish': [
             # When adding files here, remember to update MANIFEST.in as well,
             # or else they will not be included in the distribution on PyPI!
             # 'path/to/data_file',

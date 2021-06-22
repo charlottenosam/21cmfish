@@ -6,4 +6,4 @@ Start by importing 21cmfish.
 
 .. code-block:: python
 
-    import 21cmfish
+    import py21cmfish

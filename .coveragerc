@@ -1,6 +1,6 @@
 [run]
 source =
-    21cmfish
+    py21cmfish
 [report]
 omit =
     */python?.?/*
