@@ -92,14 +92,6 @@ if not os.path.exists(output_dir):
 print(f'    Loading from cache at {output_dir}')
 
 # --------------------------------------
-min_redshift = 5.
-max_redshift = 35.
-print(f'    Making lightcone from z={min_redshift}-{max_redshift}')
-
-HII_DIM = 200
-BOX_LEN = 400
-print(f'    Box HII_DIM={HII_DIM}, BOX_LEN={BOX_LEN}')
-
 lightcone_quantities = ("brightness_temp", 'density')
 global_quantities    = ("brightness_temp", 'density', 'xH_box')
 
@@ -147,6 +139,17 @@ if fix_astro_params:
 else:
     astro_params_vary = config.get('vary','astro_params_vary').split('\n')
     astro_params_vary = list(filter(None, astro_params_vary))
+
+# ==================================
+
+min_redshift = float(config.get('redshifts','min'))
+max_redshift = float(config.get('redshifts','max'))
+
+HII_DIM = user_params["HII_DIM"]
+BOX_LEN = user_params["BOX_LEN"]
+
+print(f'    Making lightcone from z={min_redshift}-{max_redshift}')
+print(f'    Box HII_DIM={HII_DIM}, BOX_LEN={BOX_LEN}')
 
 # ==================================
 # Make dictionary of sets of parameters for each run
