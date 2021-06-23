@@ -13,6 +13,7 @@ except DistributionNotFound:
     __version__ = "unknown version"
 
 sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../../'))
 
 # Convert the tutorials
 for fn in glob.glob("_static/notebooks/*.ipynb"):
