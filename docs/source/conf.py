@@ -2,6 +2,7 @@
 
 import glob
 import os
+import sys
 import subprocess
 
 from pkg_resources import DistributionNotFound, get_distribution
@@ -11,6 +12,7 @@ try:
 except DistributionNotFound:
     __version__ = "unknown version"
 
+sys.path.insert(0, os.path.abspath('.'))
 
 # Convert the tutorials
 for fn in glob.glob("_static/notebooks/*.ipynb"):
