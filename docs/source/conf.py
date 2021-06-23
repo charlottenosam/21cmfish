@@ -6,14 +6,23 @@ import sys
 import subprocess
 
 from pkg_resources import DistributionNotFound, get_distribution
+from unittest.mock import MagicMock
 
 try:
     __version__ = get_distribution("21cmfish").version
 except DistributionNotFound:
     __version__ = "unknown version"
 
-sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../../'))
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+MOCK_MODULES = []
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 
 # Convert the tutorials
 for fn in glob.glob("_static/notebooks/*.ipynb"):
