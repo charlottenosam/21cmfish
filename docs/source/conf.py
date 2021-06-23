@@ -36,7 +36,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 project = "21cmfish"
-copyright = "2012-2019, Dan Foreman-Mackey & contributors"
+copyright = "2021, Charlotte Mason & contributors"
 version = __version__
 release = __version__
 
