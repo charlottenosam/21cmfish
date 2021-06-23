@@ -11,7 +11,9 @@
 
 21cmfish
 
-* Free software: 3-clause BSD license
+A python package for doing Fisher matrix analysis with [21cmFAST](https://github.com/21cmfast/21cmFAST)
+
+* Free software: MIT license
 * Documentation: (COMING SOON!) https://charlottenosam.github.io/21cmfish.
 
 Features

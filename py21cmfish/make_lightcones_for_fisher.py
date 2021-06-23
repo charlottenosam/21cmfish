@@ -107,21 +107,41 @@ global_quantities    = ("brightness_temp", 'density', 'xH_box')
 # ==================================
 # parameters
 
+def read_config_params(item):
+    """
+    Read ints and booleans from config files
+    Use for user_params and flag_options only
+
+    Parameters
+    ----------
+    item : str
+        config dictionary item as a string
+
+    Return
+    ------
+    config dictionary item as an int, bool or str
+
+    """
+    try:
+        return int(item)
+    except:
+        if item == 'True':
+            return True
+        if item == 'False':
+            return False
+        else:
+            return item
+
 # Fidicual parameters
-user_params = {"HII_DIM":int(config.get('user_params','HII_DIM')),
-                "BOX_LEN":int(config.get('user_params','HII_DIM')),
-                "USE_FFTW_WISDOM": config.getboolean('user_params','USE_FFTW_WISDOM'),
-                'USE_INTERPOLATION_TABLES': config.getboolean('user_params','USE_INTERPOLATION_TABLES'),
-                "FAST_FCOLL_TABLES": config.getboolean('user_params','FAST_FCOLL_TABLES'),
-                "USE_RELATIVE_VELOCITIES": config.getboolean('user_params','USE_RELATIVE_VELOCITIES'),
-                "POWER_SPECTRUM":int(config.get('user_params','POWER_SPECTRUM')),
-                "N_THREADS":N_THREADS}
+user_params = dict(config.items('user_params'))
+user_params = {key:read_config_params(user_params[key]) for key in user_params}
+user_params["N_THREADS"] = N_THREADS
+
+flag_options = dict(config.items('flag_options'))
+flag_options = {key:read_config_params(flag_options[key]) for key in flag_options}
 
 astro_params_fid = dict(config.items('astro_params'))
 astro_params_fid = {key:float(astro_params_fid[key]) for key in astro_params_fid}
-
-# Make dictionary of sets of parameters for each run
-astro_params_run_all = {}
 
 if fix_astro_params:
     astro_params_vary = []
@@ -129,15 +149,10 @@ else:
     astro_params_vary = config.get('vary','astro_params_vary').split('\n')
     astro_params_vary = list(filter(None, astro_params_vary))
 
-flag_options = {'INHOMO_RECO':config.getboolean('flag_options','INHOMO_RECO'),
-                'USE_MASS_DEPENDENT_ZETA':config.getboolean('flag_options','USE_MASS_DEPENDENT_ZETA'),
-                'USE_TS_FLUCT':config.getboolean('flag_options','USE_TS_FLUCT'),
-                'USE_MINI_HALOS':config.getboolean('flag_options','USE_MINI_HALOS'),
-                'FIX_VCB_AVG':config.getboolean('flag_options','FIX_VCB_AVG'),
-                'USE_ETHOS':config.getboolean('flag_options','USE_ETHOS'),
-                'FILTER':int(config.get('flag_options','FILTER'))}
-
 # ==================================
+# Make dictionary of sets of parameters for each run
+astro_params_run_all = {}
+
 # Set up parameters for fisher runs
 astro_params_run_all[f'h_PEAK_{h_PEAK:.1f}_fid'] = astro_params_fid
 
