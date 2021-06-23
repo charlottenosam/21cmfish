@@ -35,7 +35,7 @@ templates_path = ["_templates"]
 source_suffix = ".rst"
 master_doc = "index"
 
-project = "emcee"
+project = "21cmfish"
 copyright = "2012-2019, Dan Foreman-Mackey & contributors"
 version = __version__
 release = __version__
