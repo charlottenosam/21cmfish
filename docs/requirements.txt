@@ -20,7 +20,6 @@
 #setuptools>=40.6.0
 #setuptools_scm
 cached_property
-emcee<3
 ipython
 nbsphinx
 numpydoc
