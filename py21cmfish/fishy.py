@@ -2,8 +2,90 @@ import numpy as np
 from matplotlib.patches import Ellipse
 import matplotlib.pyplot as plt
 
+def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS', 
+                        sigma=None, sigma_mod_frac=0.,
+                        k_min=None, k_max=None,
+                        z_min=None, z_max=None,
+                        axis_PS=None,
+                        add_sigma_poisson=False):
+    """
+    Make Fisher matrix and its inverse from global signal or powerspectra
+
+    Parameters
+    ----------
+    params_dict : dict
+        Dictionary of parameter objects
+    fisher_params : list
+        List of parameter strings to use for Fisher matrix (these strings must be the keys to params_dict)
+    hpeak : float
+        TODO
+    obs : str
+    sigma : None,array
+
+    Return
+    -------
+    Fisher matrix, Finv matrix
+    """    
+
+    Fij_matrix = np.zeros((len(fisher_params), len(fisher_params)))
+    
+    for i,p1 in enumerate(fisher_params):
+        
+        if i == 0 and obs == 'PS':
+            k_where = np.arange(len(params_dict[p1].PS_err[0]['k']))
+            if k_min is not None and k_max is not None:
+                k_where  = np.where((params_dict[p1].PS_err[0]['k'] <= k_max) & (params_dict[p1].PS_err[0]['k'] >= k_min))[0]
+            
+            z_where = np.arange(len(params_dict[p1].PS_z_HERA))
+            if z_min is not None and z_max is not None:
+                z_where  = np.where((params_dict[p1].PS_z_HERA <= z_max) & (params_dict[p1].PS_z_HERA >= z_min))[0]
+
+            # Model error (e.g. 20%)
+            sigma_mod = sigma_mod_frac * params_dict[p1].PS_fid[z_where][:,k_where]
+            PS0 = params_dict[p1].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where]
+            
+            # Poisson error
+            if add_sigma_poisson:
+                sigma_poisson = params_dict[p1].PS_err_Poisson[z_where][:,k_where]
+            else:
+                sigma_poisson = 0.
+
+            # Fisher as a function of redshift or k?
+            if axis_PS is not None:
+                Fij_matrix = np.zeros((PS0.shape[axis_PS-1], len(fisher_params), len(fisher_params)))                  
+                            
+        for j,p2 in enumerate(fisher_params):
+            if obs == 'GS':
+                if i==0 and j==0:
+                    print('GS shape:',params_dict[p1].deriv_GS[f'h_PEAK={hpeak:.1f}'].shape)
+                    
+                Fij_matrix[i,j] = Fij(params_dict[p1].deriv_GS[f'h_PEAK={hpeak:.1f}'], 
+                                      params_dict[p2].deriv_GS[f'h_PEAK={hpeak:.1f}'], 
+                                      sigma_obs=1, sigma_mod=0.)
+            elif obs == 'PS':
+                if sigma is None:
+                    sigma_PS = params_dict[p1].PS_sigma[z_where][:,k_where]
+                else:
+                    sigma_PS = sigma
+                    
+                if i==0 and j==0:
+                    print('PS shape:',params_dict[p1].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where].shape)
+                    
+                if axis_PS is not None:
+                    Fij_matrix[:,i,j] = Fij(params_dict[p1].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where], 
+                                          params_dict[p2].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where], 
+                                          sigma_obs=sigma_PS, sigma_mod=sigma_mod, sigma_poisson=sigma_poisson, axis=axis_PS)
+                else:
+                    Fij_matrix[i,j] = Fij(params_dict[p1].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where], 
+                                          params_dict[p2].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where], 
+                                          sigma_obs=sigma_PS, sigma_mod=sigma_mod, sigma_poisson=sigma_poisson, axis=axis_PS)
+
+    Finv = np.linalg.inv(Fij_matrix)
+    return Fij_matrix, Finv 
+
+
 def Fij(dObs_dtheta_i, dObs_dtheta_j,
-        sigma_obs=1, sigma_mod=0, axis=None):
+        sigma_obs=1., sigma_mod=0., sigma_poisson=0., axis=None):
     """
     Make fisher matrix elements
 
@@ -26,7 +108,8 @@ def Fij(dObs_dtheta_i, dObs_dtheta_j,
     ------
         F_ij fisher matrix element : float
     """
-    return np.sum(dObs_dtheta_i * dObs_dtheta_j/(sigma_obs**2. + sigma_mod**2.)**2., axis=axis)
+    sigma_sq = sigma_obs**2. + sigma_mod**2. + sigma_poisson**2.
+    return np.sum(dObs_dtheta_i * dObs_dtheta_j/sigma_sq, axis=axis)
 
 
 def fisher_correlations(Fij_matrix, fisher_params, plot=True):

@@ -19,8 +19,7 @@ class Parameter(object):
                 k_PEAK_order=2.,
                 output_dir='_cache/big_box/fisher/',
                 PS_err_dir='_cache/21cmSense/21cmSense_fid/',
-                Park19=False,
-                Park19_suffix='_Park19',
+                Park19=None,
                 clobber=True):
 
         """
@@ -45,12 +44,14 @@ class Parameter(object):
         self.k_PEAK_order = k_PEAK_order
         if self.param == 'k_PEAK':
             self.param_21cmfast = 'log10_k_PEAK'
+            self.fid_i = 0
             print(f'    param = k_PEAK^-{self.k_PEAK_order}')
         else:
             self.param_21cmfast = self.param
+            self.fid_i = 1
 
         self.param_label = self.param
-        if self.param == 'L_X' or 'F' in self.param:
+        if self.param == 'L_X' or 'F' in self.param or self.param == 'M_TURN':
             self.param_label = 'log10 '+self.param
 
         self.output_dir = output_dir
@@ -92,8 +93,8 @@ class Parameter(object):
         self.PS = None
         self.Park19 = Park19
         self.PS_suffix = ''
-        if self.Park19:
-            self.PS_suffix = Park19_suffix
+        if self.Park19 is not None:
+            self.PS_suffix = '_Park19'
 
         self.PS_file = f'{self.output_dir}power_spectrum_dict_{self.param}{self.PS_suffix}.npy'
         if os.path.exists(self.PS_file) and clobber is False:
@@ -104,7 +105,7 @@ class Parameter(object):
         self.PS_z_HERA_file = f'{self.output_dir}PS_z_HERA{self.PS_suffix}.npy'
         if os.path.exists(self.PS_z_HERA_file) and clobber is False:
             self.PS_z_HERA = np.load(self.PS_z_HERA_file, allow_pickle=True)
-            self.load_21cmsense(Park19=Park19)
+            self.load_21cmsense(Park19=self.Park19)
             print('    Loaded PS_z_HERA from',self.PS_z_HERA_file,'shape=',self.PS_z_HERA.shape)
 
         # Derivatives
@@ -117,6 +118,20 @@ class Parameter(object):
         if os.path.exists(self.PS_file.replace('dict','deriv_dict')) and clobber is False:
             self.deriv_PS = np.load(self.PS_file.replace('dict','deriv_dict'), allow_pickle=True).item()
             print('    Loaded PS derivatives from',self.PS_file.replace('dict','deriv_dict'),'shape=',self.deriv_PS['h_PEAK=0.0'].shape)
+            
+            # Get fiducial Poisson noise
+            PS_err_Poisson = []
+            for i in range(len(self.PS_z_HERA)):
+                PS_err_Poisson_sim = np.array(self.PS['h_PEAK=0.0'][f'{param}={self.theta["h_PEAK=0.0"][self.fid_i]}'][i]['err_delta'])
+                
+                # interpolate onto 21cmsense k values                
+                k_sim = self.PS['h_PEAK=0.0'][f'{param}={self.theta["h_PEAK=0.0"][self.fid_i]}'][i]['k']
+                k_err = self.PS_err[i]['k']*0.7 # h Mpc^-1
+
+                PS_err_Poisson.append(np.interp(k_err, k_sim, PS_err_Poisson_sim))
+            
+            self.PS_err_Poisson = np.array(PS_err_Poisson)
+            print(self.PS_err_Poisson.shape)
 
         return
 
@@ -132,6 +147,7 @@ class Parameter(object):
         suffix = f'HIIDIM={self.HII_DIM}_BOXLEN={self.BOX_LEN}_fisher_*{regex}*{self.param}*'
         lightcone_filename = f'{self.output_dir}LightCone_z{self.min_redshift:.1f}_*{suffix}.h5'
 
+        print(f'    Searching for lightcones with name {lightcone_filename}')
         lc_files = glob.glob(lightcone_filename)
         fid_filename = lightcone_filename.replace(self.param,'fid')
         fid_files = glob.glob(fid_filename)
@@ -179,7 +195,7 @@ class Parameter(object):
             if self.param == 'k_PEAK':
                 self.theta_params[hpeak] = 1./self.theta_params[hpeak]**self.k_PEAK_order
 
-            if self.param == 'L_X' or 'F' in self.param:
+            if self.param == 'L_X' or 'F' in self.param or self.param == 'M_TURN':
                 self.theta_params[hpeak] = np.log10(self.theta_params[hpeak])  # make L_X, F log10
 
             # Sort increasing theta order
@@ -293,7 +309,7 @@ class Parameter(object):
             if self.param == 'k_PEAK':
                 theta = 1./theta**self.k_PEAK_order
 
-            if self.param == 'L_X' or 'F' in self.param:
+            if self.param == 'L_X' or 'F' in self.param or self.param == 'M_TURN':
                 theta = np.log10(theta)  # make L_X, F log10
 
             key = f'h_PEAK={h_PEAK:.1f}'
@@ -320,7 +336,7 @@ class Parameter(object):
         return
 
 
-    def load_21cmsense(self, Park19=False, usePark19noise=False):
+    def load_21cmsense(self, Park19=None):
         """
         Load 21cmsense errors from a given directory and save arrays to self
 
@@ -329,18 +345,18 @@ class Parameter(object):
         PS_err_dir : str, optional
             Directory where 21cmSense output is stored
 
-        Park19: bool, optional
+        Park19: str, optional
             Use Park+19 z bins https://ui.adsabs.harvard.edu/abs/2019MNRAS.484..933P/abstract
-
+            'approx' = use our approximation of Park19 noise bins
+            'real' = use noise from Jaehong
         """
 
-        self.PS_z_Park19 = sorted(np.array([23.3429, 17.9333, 14.4909, 12.1077, 10.36, 9.02353, 7.96842,
-                                            7.11429, 6.4087, 5.816, 5.31111]))
-
-        if Park19:
+        if Park19 == 'approx':
+            self.PS_z_Park19 = sorted(np.array([23.3429, 17.9333, 14.4909, 12.1077, 10.36, 9.02353, 7.96842,
+                                                7.11429, 6.4087, 5.816, 5.31111]))
             self.chunk_MHz = np.round(1420.4/(np.array(self.PS_z_Park19)+1), 0)
         else:
-            self.chunk_MHz = np.round(1420.4/(np.array(self.PS_z_HERA)+1), 0)
+            self.chunk_MHz = np.round(1420.4/(np.array(self.PS_z_HERA)+1), 0) # low redshift to high redshift
 
         if os.path.exists(self.PS_err_dir) is False:
             raise AttributeError(f'Path to 21cmsense errors: {self.PS_err_dir} does not exist/cannot be found - check your path')
@@ -350,11 +366,12 @@ class Parameter(object):
         PS_err   = []
         PS_sigma = []
         PS_fid   = []
-        if usePark19noise:
+        if Park19 == 'real':
             Park19_noisefiles = np.array(glob.glob(self.PS_err_dir+f'../../Park19_ReionModel_21cmOnly/MockObs/Noise/TotalError_HERA331_PS_500Mpc_z*_1000hr.txt'))
-            Park19_z = np.array([float(f.split('_z')[-1].split('_')[0]) for f in Park19_noisefiles])
+            PS_z_Park19 = np.array([float(f.split('_z')[-1].split('_')[0]) for f in Park19_noisefiles])
 
-            Park19_noisefiles = Park19_noisefiles[np.argsort(Park19_z)][::-1]
+            Park19_noisefiles = Park19_noisefiles[np.argsort(PS_z_Park19)] # low z to high z
+            self.PS_z_Park19  = sorted(PS_z_Park19)
 
             # For each z bin
             for i, noise_file in enumerate(Park19_noisefiles):
@@ -385,6 +402,7 @@ class Parameter(object):
                 PS_fid.append(delta)
 
         self.PS_err   = np.array(PS_err)
+        print('PS_err shape',self.PS_err.shape)
         self.PS_sigma = np.array(PS_sigma)
         self.PS_fid   = np.array(PS_fid)
 
@@ -443,7 +461,7 @@ class Parameter(object):
                         theta_fid = self.theta['h_PEAK=0.0'][0]
                     theta.append(theta_fid)
                     PS.append(self.PS['h_PEAK=0.0'][f'{self.param}={theta_fid}'][i]['delta'])
-
+                
                 k = self.PS[hpeak][theta_key][i]['k']
 
                 theta = np.array(theta)
