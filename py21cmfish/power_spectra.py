@@ -6,7 +6,7 @@ from powerbox.tools import get_power
 
 def get_k_min_max(lightcone, n_chunks=24):
     """
-    Get the minimum and maximum k to calculate powerspectra for
+    Get the minimum and maximum k in 1/Mpc to calculate powerspectra for
     given size of box and number of chunks
     """
 
@@ -26,7 +26,12 @@ def compute_power(box,
                    ignore_kperp_zero=True,
                    ignore_kpar_zero=False,
                    ignore_k_zero=False):
-
+    """
+    Output:
+        k : 1/Mpc
+        delta : mK^2
+        err_delta : mK^2
+    """
     # Determine the weighting function required from ignoring k's.
     k_weights = np.ones(box.shape, dtype=int)
     n0 = k_weights.shape[0]
@@ -60,9 +65,16 @@ def compute_power(box,
 
     return res
 
+
 def powerspectra(brightness_temp, n_psbins=50, nchunks=10, min_k=0.1, max_k=1.0, logk=True):
     """
     Make power spectra for given number of equally spaced chunks
+    
+    Output:
+        k : 1/Mpc
+        delta : mK^2
+        err_delta : mK^2
+
     """
     data = []
     chunk_indices = list(range(0,brightness_temp.n_slices,round(brightness_temp.n_slices / nchunks),))
@@ -128,6 +140,11 @@ def powerspectra_chunks(lightcone, nchunks=10,
 
     """
     Make power spectra for given number of equally spaced chunks OR list of chunk indices
+
+    Output:
+        k : 1/Mpc
+        delta : mK^2
+        err_delta : mK^2
     """
     data = []
     if chunk_indices is None:

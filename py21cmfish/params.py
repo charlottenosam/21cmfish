@@ -8,8 +8,6 @@ import matplotlib.pyplot as plt
 
 from .power_spectra import *
 
-base_path = os.path.abspath(os.path.dirname(__file__))
-
 class Parameter(object):
     """Class for creating derivatives given 21cm parameters"""
     def __init__(self, param,
@@ -20,7 +18,9 @@ class Parameter(object):
                 output_dir='_cache/big_box/fisher/',
                 PS_err_dir='_cache/21cmSense/21cmSense_fid/',
                 Park19=None,
-                clobber=True):
+                cosmology='CDM',
+                clobber=False,
+                ):
 
         """
 
@@ -30,12 +30,19 @@ class Parameter(object):
             Name of parameter (must be the same as 21cmFAST AstroParam)
 
         HII_DIM : int
+            TODO
 
         BOX_LEN : int
+            TODO
 
-        Park19 : bool
+        Park19 : None, str
             Use Park+19 z bins when calculating power spectra https://ui.adsabs.harvard.edu/abs/2019MNRAS.484..933P/abstract
 
+        cosmology : str
+            Label for cosmology, will be dict key for PS etc
+
+        clobber : bool
+            If False - if paths for .npy file exist, load them
         """
 
         self.param = param
@@ -60,15 +67,18 @@ class Parameter(object):
         self.HII_DIM = HII_DIM
         self.BOX_LEN = BOX_LEN
         self.min_redshift = min_redshift
+        self.cosmology = cosmology
 
         self.lightcones = None
 
+        # Lightcone node redshifts (for global signal etc)
         self.redshifts      = None
         self.redshifts_file = f'{self.output_dir}redshifts.npy'
         if os.path.exists(self.redshifts_file):
             self.redshifts = np.load(self.redshifts_file, allow_pickle=True)
             print('    Loaded redshifts')
 
+        # All lightcone redshifts
         self.lc_redshifts   = None
         self.lc_redshifts_file = f'{self.output_dir}lc_redshifts.npy'
         if os.path.exists(self.lc_redshifts_file):
@@ -87,6 +97,7 @@ class Parameter(object):
             self.theta = np.load(self.theta_file, allow_pickle=True).item()
             print('    Loaded param values from',self.theta_file)
 
+        # lightcone chunks for PS
         self.n_chunks = n_chunks
 
         # Power spectrum
@@ -126,7 +137,7 @@ class Parameter(object):
                 
                 # interpolate onto 21cmsense k values                
                 k_sim = self.PS['h_PEAK=0.0'][f'{param}={self.theta["h_PEAK=0.0"][self.fid_i]}'][i]['k']
-                k_err = self.PS_err[i]['k']*0.7 # h Mpc^-1
+                k_err = self.PS_err[i]['k']*0.7 # h Mpc^-1 --> Mpc^-1
 
                 PS_err_Poisson.append(np.interp(k_err, k_sim, PS_err_Poisson_sim))
             
@@ -176,9 +187,15 @@ class Parameter(object):
         """
         self.T = {}
         self.theta_params = {}
+        self.use_ETHOS = lc.flag_options.pystruct['USE_ETHOS']
+
         for lc in self.lightcones:
-            h_PEAK = np.round(lc.astro_params.pystruct['h_PEAK'],1)
-            key = f'h_PEAK={h_PEAK:.1f}'
+            if use_ETHOS:
+                h_PEAK = np.round(lc.astro_params.pystruct['h_PEAK'],1)
+                key = f'h_PEAK={h_PEAK:.1f}'
+            else: 
+                key = self.cosmology
+
             if key not in self.T:
                 self.T[key] = []
                 self.theta_params[key] = []
@@ -188,25 +205,25 @@ class Parameter(object):
                 self.redshifts = lc.node_redshifts
                 np.save(self.redshifts_file, self.redshifts, allow_pickle=True)
 
-        for hpeak in self.T:
-            self.T[hpeak] = np.array(self.T[hpeak])
-            self.theta_params[hpeak] = np.array(self.theta_params[hpeak])
+        for cosmo_key in self.T:
+            self.T[cosmo_key] = np.array(self.T[cosmo_key])
+            self.theta_params[cosmo_key] = np.array(self.theta_params[cosmo_key])
 
             if self.param == 'k_PEAK':
-                self.theta_params[hpeak] = 1./self.theta_params[hpeak]**self.k_PEAK_order
+                self.theta_params[cosmo_key] = 1./self.theta_params[cosmo_key]**self.k_PEAK_order
 
             if self.param == 'L_X' or 'F' in self.param or self.param == 'M_TURN':
-                self.theta_params[hpeak] = np.log10(self.theta_params[hpeak])  # make L_X, F log10
+                self.theta_params[cosmo_key] = np.log10(self.theta_params[cosmo_key])  # make L_X, F log10
 
             # Sort increasing theta order
-            self.T[hpeak] = self.T[hpeak][np.argsort(self.theta_params[hpeak])]
-            self.theta_params[hpeak] = self.theta_params[hpeak][np.argsort(self.theta_params[hpeak])]
+            self.T[cosmo_key] = self.T[cosmo_key][np.argsort(self.theta_params[cosmo_key])]
+            self.theta_params[cosmo_key] = self.theta_params[cosmo_key][np.argsort(self.theta_params[cosmo_key])]
 
-            # if len(self.theta_params[hpeak]) > 3:
-            #     raise Attribute Error('Too many parameters',self.theta_params[hpeak])
+            # if len(self.theta_params[cosmo_key]) > 3:
+            #     raise Attribute Error('Too many parameters',self.theta_params[cosmo_key])
 
             if plot:
-                plt.plot(self.redshifts, self.T[hpeak].T)
+                plt.plot(self.redshifts, self.T[cosmo_key].T)
 
         if save:
             np.save(self.T_file, self.T, allow_pickle=True)
@@ -227,28 +244,28 @@ class Parameter(object):
 
         self.deriv_GS = {}
 
-        for hpeak in self.T:
+        for cosmo_key in self.T:
 
-            if '0.0' in hpeak:
+            if 'h_PEAK=0.0' in cosmo_key:
                 ls = 'dashed'
             else:
                 ls = 'solid'
 
             if self.param == 'k_PEAK':
-                deriv = np.zeros((len(self.theta_params[hpeak]),len(self.T[hpeak][0])))
-                for j in range(len(self.theta_params[hpeak])):
+                deriv = np.zeros((len(self.theta_params[cosmo_key]),len(self.T[cosmo_key][0])))
+                for j in range(len(self.theta_params[cosmo_key])):
                     if j > 0:
-                        deriv[j] = (self.T[hpeak][j] - self.T[hpeak][0])/(self.theta_params[hpeak][j]-self.theta_params[hpeak][0])
+                        deriv[j] = (self.T[cosmo_key][j] - self.T[cosmo_key][0])/(self.theta_params[cosmo_key][j]-self.theta_params[cosmo_key][0])
                         if plot:
                             ax.plot(self.redshifts, deriv[j],
                                     lw=1, ls=ls,
-                                    label='1/k_PEAK^%.1f < %.1e' % (self.k_PEAK_order, self.theta_params[hpeak][j]))
+                                    label='1/k_PEAK^%.1f < %.1e' % (self.k_PEAK_order, self.theta_params[cosmo_key][j]))
 
-                self.deriv_GS[hpeak] = deriv[1]
+                self.deriv_GS[cosmo_key] = deriv[1]
 
             else:
-                deriv = np.gradient(self.T[hpeak], self.theta_params[hpeak], axis=0)
-                self.deriv_GS[hpeak] = deriv[1]
+                deriv = np.gradient(self.T[cosmo_key], self.theta_params[cosmo_key], axis=0)
+                self.deriv_GS[cosmo_key] = deriv[1]
 
                 labels = ['one-sided -','two-sided','one-sided +']
                 if plot:
@@ -272,7 +289,7 @@ class Parameter(object):
         return
 
 
-    def get_power_spectra(self, save=True):
+    def get_power_spectra(self, n_psbins=50, save=True):
         """
         Make 21cm power spectra from redshift chunk list (bin edges)
 
@@ -302,8 +319,15 @@ class Parameter(object):
         print(f'    Making powerspectra in {len(chunk_z_list_HERA)} chunks')
 
         self.PS = {}
+        self.use_ETHOS = lc.flag_options.pystruct['USE_ETHOS']
+
         for lc in self.lightcones:
-            h_PEAK = np.round(lc.astro_params.pystruct['h_PEAK'],1)
+            if use_ETHOS:
+                h_PEAK = np.round(lc.astro_params.pystruct['h_PEAK'],1)
+                key = f'h_PEAK={h_PEAK:.1f}'
+            else: 
+                key = self.cosmology
+
             theta  = lc.astro_params.pystruct[self.param_21cmfast]
 
             if self.param == 'k_PEAK':
@@ -312,7 +336,6 @@ class Parameter(object):
             if self.param == 'L_X' or 'F' in self.param or self.param == 'M_TURN':
                 theta = np.log10(theta)  # make L_X, F log10
 
-            key = f'h_PEAK={h_PEAK:.1f}'
             if key not in self.PS:
                 self.PS[key] = {} ##### TODO load PS nicely
 
@@ -320,6 +343,7 @@ class Parameter(object):
 
             # Make PS
             self.PS_z_HERA, self.PS[key][f'{self.param}={theta}'] = powerspectra_chunks(lc,
+                                                                     n_psbins=n_psbins,
                                                                      chunk_indices=chunk_indices_HERA,
                                                                      min_k=self.k_fundamental,
                                                                      max_k=self.k_max)
@@ -428,9 +452,9 @@ class Parameter(object):
 
         self.deriv_PS = {}
 
-        for hpeak in sorted(self.T):
+        for cosmo_key in sorted(self.T):
 
-            if '0.0' in hpeak:
+            if 'h_PEAK=0.0' in cosmo_key:
                 ls = 'dashed'
             else:
                 ls = 'solid'
@@ -439,22 +463,23 @@ class Parameter(object):
                 fig, ax = plt.subplots(4,int(np.round(len(self.PS_z_HERA)/4,0)),
                                         sharex=True, sharey=False, figsize=(15,9))
                 ax = ax.ravel()
-                fig.suptitle(hpeak+'  -  '+self.param)
+                fig.suptitle(cosmo_key+'  -  '+self.param)
 
-            self.deriv_PS[hpeak] = np.zeros((len(self.PS_err),len(self.PS_err[0]['k'])))
+            self.deriv_PS[cosmo_key] = np.zeros((len(self.PS_err),len(self.PS_err[0]['k'])))
 
             # For each z bin
+
             for i in range(len(self.PS_z_HERA)):
 
                 # Get PS for each theta
                 theta = []
                 PS    = []
-                for theta_key in self.PS[hpeak]:
+                for theta_key in self.PS[cosmo_key]:
                     theta.append(float(theta_key.split('=')[-1]))
-                    PS.append(self.PS[hpeak][theta_key][i]['delta'])
+                    PS.append(self.PS[cosmo_key][theta_key][i]['delta'])
 
                 # Add fiducial
-                if '0.0' not in hpeak and '1.0' not in hpeak:
+                if '0.0' not in cosmo_key and '1.0' not in cosmo_key:
                     if self.param != 'k_PEAK':
                         theta_fid = self.theta['h_PEAK=0.0'][1]
                     else:
@@ -462,7 +487,7 @@ class Parameter(object):
                     theta.append(theta_fid)
                     PS.append(self.PS['h_PEAK=0.0'][f'{self.param}={theta_fid}'][i]['delta'])
                 
-                k = self.PS[hpeak][theta_key][i]['k']
+                k = self.PS[cosmo_key][theta_key][i]['k']
 
                 theta = np.array(theta)
                 PS    = np.array(PS)[np.argsort(theta)]
@@ -484,8 +509,8 @@ class Parameter(object):
                 else:
                     deriv = np.gradient(PS, theta, axis=0)
 
-                # interpolate onto k for 21cmsense
-                self.deriv_PS[hpeak][i] = np.interp(self.PS_err[i]['k']*0.7, k, deriv[1])
+                # interpolate onto k for 21cmsense in 1/Mpc [21cmsense output is in h/Mpc]
+                self.deriv_PS[cosmo_key][i] = np.interp(self.PS_err[i]['k']*0.7, k, deriv[1])
 
                 if plot:
                     try:
@@ -496,7 +521,7 @@ class Parameter(object):
                     if self.param != 'k_PEAK':
                         ax[i].semilogx(k, deriv.T, alpha=0.7)
 
-                    ax[i].scatter(self.PS_err[i]['k']*0.7, self.deriv_PS[hpeak][i],
+                    ax[i].scatter(self.PS_err[i]['k']*0.7, self.deriv_PS[cosmo_key][i],
                                     c='k', s=5, ls='dashed', zorder=100)
 
                     ax[i].set_xlabel('k [$h$ Mpc$^{-1}$]')
@@ -505,7 +530,7 @@ class Parameter(object):
             if plot:
                 ax[0].legend()
                 fig.tight_layout()
-                fig.savefig(self.output_dir+f'PS_deriv_{self.param}_{hpeak}{self.PS_suffix}.png', bbox_inches='tight')
+                fig.savefig(self.output_dir+f'PS_deriv_{self.param}_{cosmo_key}{self.PS_suffix}.png', bbox_inches='tight')
 
         if save:
             PS_deriv_file = self.PS_file.replace('dict','deriv_dict')

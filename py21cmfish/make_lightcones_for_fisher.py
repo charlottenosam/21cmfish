@@ -14,8 +14,8 @@ logger = logging.getLogger("21cmFAST")
 logger.setLevel(logging.INFO)
 
 # ==============================================================================
-# python make_lightcones_for_fisher.py ../21cmFAST_config_files/ETHOS.config --h_PEAK 1. --dry_run
-# python make_ETHOS_bigboxes_for_fisher.py --h_PEAK 1. --fix_astro_params
+# python make_lightcones_for_fisher.py ../21cmFAST_config_files/ETHOS.config --dry_run
+# python make_lightcones_for_fisher.py --h_PEAK 1. --fix_astro_params
 
 # ==============================================================================
 # Import config files
@@ -156,7 +156,12 @@ print(f'    Box HII_DIM={HII_DIM}, BOX_LEN={BOX_LEN}')
 astro_params_run_all = {}
 
 # Set up parameters for fisher runs
-astro_params_run_all[f'h_PEAK_{h_PEAK:.1f}_fid'] = astro_params_fid
+if flag_options['USE_ETHOS'] is True:
+    dict_prefix = 'h_PEAK_{h_PEAK:.1f}_'
+else:
+    dict_prefix = ''
+
+astro_params_run_all[f'{dict_prefix}fid'] = astro_params_fid
 
 for param in astro_params_vary:
     p_fid = astro_params_fid[param]
@@ -178,7 +183,7 @@ for param in astro_params_vary:
         astro_params_run[param] = pp
         if param == 'L_X': # change L_X and L_X_MINI at the same time
             astro_params_run['L_X_MINI'] = pp
-        astro_params_run_all[f'h_PEAK_{h_PEAK:.1f}_{param}_{q[i]}'] = astro_params_run.copy()
+        astro_params_run_all[f'{dict_prefix}{param}_{q[i]}'] = astro_params_run.copy()
 
 # TODO nicer for not ETHOS runs
 if flag_options['USE_ETHOS'] is True:
