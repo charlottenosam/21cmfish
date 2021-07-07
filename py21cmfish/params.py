@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from .power_spectra import *
 
+
 class Parameter(object):
     """Class for creating derivatives given 21cm parameters"""
     def __init__(self, param,
@@ -20,6 +21,7 @@ class Parameter(object):
                 Park19=None,
                 cosmology='CDM',
                 clobber=False,
+                new=True
                 ):
 
         """
@@ -36,13 +38,19 @@ class Parameter(object):
             TODO
 
         Park19 : None, str
-            Use Park+19 z bins when calculating power spectra https://ui.adsabs.harvard.edu/abs/2019MNRAS.484..933P/abstract
+            Use Park+19 z bins when calculating power spectra 
+            https://ui.adsabs.harvard.edu/abs/2019MNRAS.484..933P/abstract
+            'approx' = use our approximation of Park19 noise bins
+            'real' = use noise from Jaehong
 
         cosmology : str
             Label for cosmology, will be dict key for PS etc
 
         clobber : bool
             If False - if paths for .npy file exist, load them
+
+        new : bool
+            If True, this is a new parameter -- let's make new GS and PS files from the lightcones
         """
 
         self.param = param
@@ -91,10 +99,10 @@ class Parameter(object):
             self.T = np.load(self.T_file, allow_pickle=True).item()
             print('    Loaded T(z) from',self.T_file)
 
-        self.theta = None
+        self.theta_params = None
         self.theta_file = f'{self.output_dir}params_dict_{self.param}.npy'
         if os.path.exists(self.theta_file) and clobber is False:
-            self.theta = np.load(self.theta_file, allow_pickle=True).item()
+            self.theta_params = np.load(self.theta_file, allow_pickle=True).item()
             print('    Loaded param values from',self.theta_file)
 
         # lightcone chunks for PS
@@ -128,21 +136,35 @@ class Parameter(object):
         self.deriv_PS = None
         if os.path.exists(self.PS_file.replace('dict','deriv_dict')) and clobber is False:
             self.deriv_PS = np.load(self.PS_file.replace('dict','deriv_dict'), allow_pickle=True).item()
-            print('    Loaded PS derivatives from',self.PS_file.replace('dict','deriv_dict'),'shape=',self.deriv_PS['h_PEAK=0.0'].shape)
+            keys = list(self.deriv_PS.keys())
+            print('    Loaded PS derivatives from',self.PS_file.replace('dict','deriv_dict'),'shape=',self.deriv_PS[keys[0]].shape)
             
             # Get fiducial Poisson noise
             PS_err_Poisson = []
             for i in range(len(self.PS_z_HERA)):
-                PS_err_Poisson_sim = np.array(self.PS['h_PEAK=0.0'][f'{param}={self.theta["h_PEAK=0.0"][self.fid_i]}'][i]['err_delta'])
+                PS_err_Poisson_sim = np.array(self.PS[keys[0]][f'{param}={self.theta_params[keys[0]][self.fid_i]}'][i]['err_delta'])
                 
                 # interpolate onto 21cmsense k values                
-                k_sim = self.PS['h_PEAK=0.0'][f'{param}={self.theta["h_PEAK=0.0"][self.fid_i]}'][i]['k']
+                k_sim = self.PS[keys[0]][f'{param}={self.theta_params[keys[0]][self.fid_i]}'][i]['k']
                 k_err = self.PS_err[i]['k']*0.7 # h Mpc^-1 --> Mpc^-1
 
                 PS_err_Poisson.append(np.interp(k_err, k_sim, PS_err_Poisson_sim))
             
             self.PS_err_Poisson = np.array(PS_err_Poisson)
-            print(self.PS_err_Poisson.shape)
+
+        if new:
+            print('    New parameter, making new global signal and power spectra from the lightcones')
+            # Load lightcones
+            self.get_lightcones()
+
+            # Make global signal and derivatives
+            self.get_global_signal()
+            self.derivative_global_signal()
+            
+            # Make power spectrum, load PS noise and make derivatives
+            self.get_power_spectra()
+            self.load_21cmsense(Park19=Park19)
+            self.derivative_power_spectrum()
 
         return
 
@@ -187,7 +209,7 @@ class Parameter(object):
         """
         self.T = {}
         self.theta_params = {}
-        self.use_ETHOS = lc.flag_options.pystruct['USE_ETHOS']
+        use_ETHOS = self.lightcones[0].flag_options.pystruct['USE_ETHOS']
 
         for lc in self.lightcones:
             if use_ETHOS:
@@ -319,7 +341,7 @@ class Parameter(object):
         print(f'    Making powerspectra in {len(chunk_z_list_HERA)} chunks')
 
         self.PS = {}
-        self.use_ETHOS = lc.flag_options.pystruct['USE_ETHOS']
+        use_ETHOS = self.lightcones[0].flag_options.pystruct['USE_ETHOS']
 
         for lc in self.lightcones:
             if use_ETHOS:
@@ -426,7 +448,6 @@ class Parameter(object):
                 PS_fid.append(delta)
 
         self.PS_err   = np.array(PS_err)
-        print('PS_err shape',self.PS_err.shape)
         self.PS_sigma = np.array(PS_sigma)
         self.PS_fid   = np.array(PS_fid)
 
@@ -459,6 +480,8 @@ class Parameter(object):
             else:
                 ls = 'solid'
 
+            print(cosmo_key)
+
             if plot:
                 fig, ax = plt.subplots(4,int(np.round(len(self.PS_z_HERA)/4,0)),
                                         sharex=True, sharey=False, figsize=(15,9))
@@ -478,14 +501,13 @@ class Parameter(object):
                     theta.append(float(theta_key.split('=')[-1]))
                     PS.append(self.PS[cosmo_key][theta_key][i]['delta'])
 
-                # Add fiducial
-                if '0.0' not in cosmo_key and '1.0' not in cosmo_key:
-                    if self.param != 'k_PEAK':
-                        theta_fid = self.theta['h_PEAK=0.0'][1]
-                    else:
-                        theta_fid = self.theta['h_PEAK=0.0'][0]
-                    theta.append(theta_fid)
-                    PS.append(self.PS['h_PEAK=0.0'][f'{self.param}={theta_fid}'][i]['delta'])
+                # # Add fiducial
+                # if self.param != 'k_PEAK':
+                #     theta_fid = self.theta_params[cosmo_key][1]
+                # else:
+                #     theta_fid = self.theta_params[cosmo_key][0]
+                # theta.append(theta_fid)
+                # PS.append(self.PS[cosmo_key][f'{self.param}={theta_fid}'][i]['delta'])
                 
                 k = self.PS[cosmo_key][theta_key][i]['k']
 
@@ -494,7 +516,7 @@ class Parameter(object):
                 theta = theta[np.argsort(theta)]
 
                 if i==0:
-                    print('theta=',theta)
+                    print('theta =',theta)
 
                 # Calculate derivative
                 if self.param == 'k_PEAK':

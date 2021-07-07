@@ -5,3 +5,4 @@ del get_versions
 from .params import *
 from .power_spectra import *
 from .fishy import *
+from .io import *

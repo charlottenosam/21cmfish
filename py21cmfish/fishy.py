@@ -2,11 +2,12 @@ import numpy as np
 from matplotlib.patches import Ellipse
 import matplotlib.pyplot as plt
 
+
 def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS', 
                         sigma=None, sigma_mod_frac=0.,
                         k_min=None, k_max=None,
                         z_min=None, z_max=None,
-                        axis_PS=None,
+                        axis_PS=None, cosmo_key='CDM',
                         add_sigma_poisson=False):
     """
     Make Fisher matrix and its inverse from global signal or powerspectra
@@ -20,7 +21,25 @@ def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
     hpeak : float
         TODO
     obs : str
+        'GS' - global signal, 'PS' - power spectrum
     sigma : None,array
+        TODO
+    sigma_mod_frac : float
+        Fraction of modelling error in PS e.g. 0.2 adds a 20% error on the PS in quadrature to the 21cmsense error
+    k_min : None,float
+        Minimum k to use for PS [1/Mpc]
+    k_max : None,float
+        Maximum k to use for PS [1/Mpc]
+    z_min : None,float
+        Minimum redshift to use for PS
+    z_max : None,float
+        Maximum redshift to use for PS
+    axis_PS : None,int
+        TODO
+    cosmo_key : None,str
+        TODO
+    add_sigma_poisson : bool
+        TODO
 
     Return
     -------
@@ -33,7 +52,7 @@ def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
         
         if i == 0 and obs == 'PS':
             k_where = np.arange(len(params_dict[p1].PS_err[0]['k']))
-            if k_min is not None and k_max is not None:
+            if k_min is not None and k_max is not None: # k range in 1/Mpc
                 k_where  = np.where((params_dict[p1].PS_err[0]['k'] <= k_max) & (params_dict[p1].PS_err[0]['k'] >= k_min))[0]
             
             z_where = np.arange(len(params_dict[p1].PS_z_HERA))
@@ -42,7 +61,9 @@ def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
 
             # Model error (e.g. 20%)
             sigma_mod = sigma_mod_frac * params_dict[p1].PS_fid[z_where][:,k_where]
-            PS0 = params_dict[p1].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where]
+            # if cosmo_key is None:
+            # cosmo_key = params_dict[p1].deriv_PS.keys()[0]
+            PS0 = params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where]
             
             # Poisson error
             if add_sigma_poisson:
@@ -57,10 +78,10 @@ def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
         for j,p2 in enumerate(fisher_params):
             if obs == 'GS':
                 if i==0 and j==0:
-                    print('GS shape:',params_dict[p1].deriv_GS[f'h_PEAK={hpeak:.1f}'].shape)
+                    print('GS shape:',params_dict[p1].deriv_GS[cosmo_key].shape)
                     
-                Fij_matrix[i,j] = Fij(params_dict[p1].deriv_GS[f'h_PEAK={hpeak:.1f}'], 
-                                      params_dict[p2].deriv_GS[f'h_PEAK={hpeak:.1f}'], 
+                Fij_matrix[i,j] = Fij(params_dict[p1].deriv_GS[cosmo_key], 
+                                      params_dict[p2].deriv_GS[cosmo_key], 
                                       sigma_obs=1, sigma_mod=0.)
             elif obs == 'PS':
                 if sigma is None:
@@ -69,15 +90,15 @@ def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
                     sigma_PS = sigma
                     
                 if i==0 and j==0:
-                    print('PS shape:',params_dict[p1].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where].shape)
+                    print('PS shape:',params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where].shape)
                     
                 if axis_PS is not None:
-                    Fij_matrix[:,i,j] = Fij(params_dict[p1].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where], 
-                                          params_dict[p2].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where], 
+                    Fij_matrix[:,i,j] = Fij(params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where], 
+                                          params_dict[p2].deriv_PS[cosmo_key][z_where][:,k_where], 
                                           sigma_obs=sigma_PS, sigma_mod=sigma_mod, sigma_poisson=sigma_poisson, axis=axis_PS)
                 else:
-                    Fij_matrix[i,j] = Fij(params_dict[p1].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where], 
-                                          params_dict[p2].deriv_PS[f'h_PEAK={hpeak:.1f}'][z_where][:,k_where], 
+                    Fij_matrix[i,j] = Fij(params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where], 
+                                          params_dict[p2].deriv_PS[cosmo_key][z_where][:,k_where], 
                                           sigma_obs=sigma_PS, sigma_mod=sigma_mod, sigma_poisson=sigma_poisson, axis=axis_PS)
 
     Finv = np.linalg.inv(Fij_matrix)
@@ -286,6 +307,7 @@ def plot_triangle(params, fiducial, cov, fig=None, ax=None,
                    N_std=[1.,2.], plot_rescale = 4.,
                    ellipse_kwargs=[{},
                                   {'alpha':0.5}],
+                   title_fontsize=20,
                    xlabel_kwargs={'labelpad': 5, 'fontsize':18},
                    ylabel_kwargs={'labelpad': 5, 'fontsize':18},
                    fig_kwargs={'figsize': (8, 8)},
@@ -415,7 +437,7 @@ def plot_triangle(params, fiducial, cov, fig=None, ax=None,
 
                     gauss = rescale * np.exp(-(x-fiducial[ii])**2 / (2 * sig**2)) / (sig * np.sqrt(2*np.pi))
                     ax[jj, ii].plot(x, gauss, **plot1D_kwargs)
-                    ax[jj, ii].set_title(f'{labels[ii]}$={fiducial[ii]:.2f}\pm{sig:.2f}$')
+                    ax[jj, ii].set_title(f'{labels[ii]}$={fiducial[ii]:.2f}\pm{sig:.2f}$', fontsize=title_fontsize)
                     if ii == nparams-1:
                         ax[jj, ii].set_xlabel(labels[ii], **xlabel_kwargs)
                 else:

@@ -7,6 +7,8 @@ from joblib import Parallel, delayed
 import argparse
 import configparser
 
+from .io import *
+
 print(f"21cmFAST version is {p21c.__version__}")
 
 import logging
@@ -16,6 +18,11 @@ logger.setLevel(logging.INFO)
 # ==============================================================================
 # python make_lightcones_for_fisher.py ../21cmFAST_config_files/ETHOS.config --dry_run
 # python make_lightcones_for_fisher.py --h_PEAK 1. --fix_astro_params
+# TODO =====
+# Took ---- Finished making lightcones, took 15.86 hours ---- for ETHOS. 
+# Took 11 mins to make PS
+# 
+
 
 # ==============================================================================
 # Import config files
@@ -97,31 +104,6 @@ global_quantities    = ("brightness_temp", 'density', 'xH_box')
 
 # ==================================
 # parameters
-
-def read_config_params(item):
-    """
-    Read ints and booleans from config files
-    Use for user_params and flag_options only
-
-    Parameters
-    ----------
-    item : str
-        config dictionary item as a string
-
-    Return
-    ------
-    config dictionary item as an int, bool or str
-
-    """
-    try:
-        return int(item)
-    except:
-        if item == 'True':
-            return True
-        if item == 'False':
-            return False
-        else:
-            return item
 
 # Fidicual parameters
 user_params = dict(config.items('user_params'))
