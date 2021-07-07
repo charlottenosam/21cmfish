@@ -21,7 +21,7 @@ class Parameter(object):
                 Park19=None,
                 cosmology='CDM',
                 clobber=False,
-                new=True
+                new=False
                 ):
 
         """
