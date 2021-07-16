@@ -7,7 +7,7 @@ from joblib import Parallel, delayed
 import argparse
 import configparser
 
-from .io import *
+import py21cmfish as p21fish
 
 print(f"21cmFAST version is {p21c.__version__}")
 
@@ -16,12 +16,12 @@ logger = logging.getLogger("21cmFAST")
 logger.setLevel(logging.INFO)
 
 # ==============================================================================
-# python make_lightcones_for_fisher.py ../21cmFAST_config_files/ETHOS.config --dry_run
+# python make_lightcones_for_fisher.py 21cmFAST_config_files/ETHOS.config --dry_run
 # python make_lightcones_for_fisher.py --h_PEAK 1. --fix_astro_params
 # TODO =====
-# Took ---- Finished making lightcones, took 15.86 hours ---- for ETHOS. 
+# Took ---- Finished making lightcones, took 15.86 hours ---- for ETHOS.
 # Took 11 mins to make PS
-# 
+#
 
 
 # ==============================================================================
@@ -107,11 +107,11 @@ global_quantities    = ("brightness_temp", 'density', 'xH_box')
 
 # Fidicual parameters
 user_params = dict(config.items('user_params'))
-user_params = {key:read_config_params(user_params[key]) for key in user_params}
+user_params = {key:p21fish.read_config_params(user_params[key]) for key in user_params}
 user_params["N_THREADS"] = N_THREADS
 
 flag_options = dict(config.items('flag_options'))
-flag_options = {key:read_config_params(flag_options[key]) for key in flag_options}
+flag_options = {key:p21fish.read_config_params(flag_options[key]) for key in flag_options}
 
 astro_params_fid = dict(config.items('astro_params'))
 astro_params_fid = {key:float(astro_params_fid[key]) for key in astro_params_fid}

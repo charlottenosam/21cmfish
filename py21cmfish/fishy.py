@@ -3,7 +3,7 @@ from matplotlib.patches import Ellipse
 import matplotlib.pyplot as plt
 
 
-def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS', 
+def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
                         sigma=None, sigma_mod_frac=0.,
                         k_min=None, k_max=None,
                         z_min=None, z_max=None,
@@ -44,17 +44,17 @@ def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
     Return
     -------
     Fisher matrix, Finv matrix
-    """    
+    """
 
     Fij_matrix = np.zeros((len(fisher_params), len(fisher_params)))
-    
+
     for i,p1 in enumerate(fisher_params):
-        
+
         if i == 0 and obs == 'PS':
             k_where = np.arange(len(params_dict[p1].PS_err[0]['k']))
             if k_min is not None and k_max is not None: # k range in 1/Mpc
                 k_where  = np.where((params_dict[p1].PS_err[0]['k'] <= k_max) & (params_dict[p1].PS_err[0]['k'] >= k_min))[0]
-            
+
             z_where = np.arange(len(params_dict[p1].PS_z_HERA))
             if z_min is not None and z_max is not None:
                 z_where  = np.where((params_dict[p1].PS_z_HERA <= z_max) & (params_dict[p1].PS_z_HERA >= z_min))[0]
@@ -64,7 +64,7 @@ def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
             # if cosmo_key is None:
             # cosmo_key = params_dict[p1].deriv_PS.keys()[0]
             PS0 = params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where]
-            
+
             # Poisson error
             if add_sigma_poisson:
                 sigma_poisson = params_dict[p1].PS_err_Poisson[z_where][:,k_where]
@@ -73,36 +73,36 @@ def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
 
             # Fisher as a function of redshift or k?
             if axis_PS is not None:
-                Fij_matrix = np.zeros((PS0.shape[axis_PS-1], len(fisher_params), len(fisher_params)))                  
-                            
+                Fij_matrix = np.zeros((PS0.shape[axis_PS-1], len(fisher_params), len(fisher_params)))
+
         for j,p2 in enumerate(fisher_params):
             if obs == 'GS':
                 if i==0 and j==0:
                     print('GS shape:',params_dict[p1].deriv_GS[cosmo_key].shape)
-                    
-                Fij_matrix[i,j] = Fij(params_dict[p1].deriv_GS[cosmo_key], 
-                                      params_dict[p2].deriv_GS[cosmo_key], 
+
+                Fij_matrix[i,j] = Fij(params_dict[p1].deriv_GS[cosmo_key],
+                                      params_dict[p2].deriv_GS[cosmo_key],
                                       sigma_obs=1, sigma_mod=0.)
             elif obs == 'PS':
                 if sigma is None:
                     sigma_PS = params_dict[p1].PS_sigma[z_where][:,k_where]
                 else:
                     sigma_PS = sigma
-                    
+
                 if i==0 and j==0:
                     print('PS shape:',params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where].shape)
-                    
+
                 if axis_PS is not None:
-                    Fij_matrix[:,i,j] = Fij(params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where], 
-                                          params_dict[p2].deriv_PS[cosmo_key][z_where][:,k_where], 
+                    Fij_matrix[:,i,j] = Fij(params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where],
+                                          params_dict[p2].deriv_PS[cosmo_key][z_where][:,k_where],
                                           sigma_obs=sigma_PS, sigma_mod=sigma_mod, sigma_poisson=sigma_poisson, axis=axis_PS)
                 else:
-                    Fij_matrix[i,j] = Fij(params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where], 
+                    Fij_matrix[i,j] = Fij(params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where],
                                           params_dict[p2].deriv_PS[cosmo_key][z_where][:,k_where], 
                                           sigma_obs=sigma_PS, sigma_mod=sigma_mod, sigma_poisson=sigma_poisson, axis=axis_PS)
 
     Finv = np.linalg.inv(Fij_matrix)
-    return Fij_matrix, Finv 
+    return Fij_matrix, Finv
 
 
 def Fij(dObs_dtheta_i, dObs_dtheta_j,

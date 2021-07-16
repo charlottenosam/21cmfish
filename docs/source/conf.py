@@ -42,9 +42,10 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.mathjax",
+    "nbsphinx"
 ]
 templates_path = ["_templates"]
-source_suffix = ".rst"
+source_suffix = [".rst",".ipynb"]
 master_doc = "index"
 
 project = "21cmfish"

@@ -13,5 +13,6 @@
 
    installation
    usage
+   tutorials
    api
    release-history

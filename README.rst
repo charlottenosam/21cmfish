@@ -13,7 +13,8 @@
         :alt: Documentation Status
 
 
-A python package for doing Fisher matrix analysis with [21cmFAST](https://github.com/21cmfast/21cmFAST)
+A python package for doing Fisher matrix analysis with
+`21cmFAST <https://github.com/21cmfast/21cmFAST/>`_.
 
 Dependencies
 ------------
