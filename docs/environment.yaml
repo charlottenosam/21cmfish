@@ -7,9 +7,9 @@ dependencies:
   - ipython
   - jupyter
   - numpy
-  - nbsphinx
   - numpydoc
   - sphinx>=1.7.5
+  - nbsphinx
   - pandoc
   - astropy  # need this here, because we base classes off it (and docs need that).
   - pyyaml
