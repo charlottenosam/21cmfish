@@ -43,6 +43,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.mathjax",
     "nbsphinx",
+    'sphinx.ext.imgconverter'
 ]
 templates_path = ["_templates"]
 source_suffix = [".rst",".ipynb"]
