@@ -7,6 +7,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from .power_spectra import *
+from .io import *
 
 
 class Parameter(object):
@@ -16,12 +17,13 @@ class Parameter(object):
                 min_redshift=5.,
                 n_chunks=24,
                 k_PEAK_order=2.,
-                output_dir='_cache/big_box/fisher/',
-                PS_err_dir='_cache/21cmSense/21cmSense_fid/',
+                output_dir=base_path+'examples/data/',
+                PS_err_dir=base_path+'examples/data/21cmSense_noise/21cmSense_fid_EOS21/',
                 Park19=None,
                 cosmology='CDM',
                 clobber=False,
-                new=False
+                new=False,
+                vb=True
                 ):
 
         """
@@ -51,7 +53,11 @@ class Parameter(object):
 
         new : bool
             If True, this is a new parameter -- let's make new GS and PS files from the lightcones
+
+        vb : bool
+            Verbose?
         """
+        self.vb = vb
 
         self.param = param
         print('########### fisher set up for',self.param)
@@ -60,7 +66,7 @@ class Parameter(object):
         if self.param == 'k_PEAK':
             self.param_21cmfast = 'log10_k_PEAK'
             self.fid_i = 0
-            print(f'    param = k_PEAK^-{self.k_PEAK_order}')
+            if self.vb: print(f'    param = k_PEAK^-{self.k_PEAK_order}')
         else:
             self.param_21cmfast = self.param
             self.fid_i = 1
@@ -84,26 +90,26 @@ class Parameter(object):
         self.redshifts_file = f'{self.output_dir}redshifts.npy'
         if os.path.exists(self.redshifts_file):
             self.redshifts = np.load(self.redshifts_file, allow_pickle=True)
-            print('    Loaded redshifts')
+            if self.vb: print('    Loaded redshifts')
 
         # All lightcone redshifts
         self.lc_redshifts   = None
         self.lc_redshifts_file = f'{self.output_dir}lc_redshifts.npy'
         if os.path.exists(self.lc_redshifts_file):
             self.lc_redshifts = np.load(self.lc_redshifts_file, allow_pickle=True)
-            print('    Loaded redshifts')
+            if self.vb: print('    Loaded redshifts')
 
         self.T = None
         self.T_file = f'{self.output_dir}global_signal_dict_{self.param}.npy'
         if os.path.exists(self.T_file) and clobber is False:
             self.T = np.load(self.T_file, allow_pickle=True).item()
-            print('    Loaded T(z) from',self.T_file)
+            if self.vb: print('    Loaded T(z) from',self.T_file)
 
         self.theta_params = None
         self.theta_file = f'{self.output_dir}params_dict_{self.param}.npy'
         if os.path.exists(self.theta_file) and clobber is False:
             self.theta_params = np.load(self.theta_file, allow_pickle=True).item()
-            print('    Loaded param values from',self.theta_file)
+            if self.vb: print('    Loaded param values from',self.theta_file)
 
         # lightcone chunks for PS
         self.n_chunks = n_chunks
@@ -118,26 +124,26 @@ class Parameter(object):
         self.PS_file = f'{self.output_dir}power_spectrum_dict_{self.param}{self.PS_suffix}.npy'
         if os.path.exists(self.PS_file) and clobber is False:
             self.PS = np.load(self.PS_file, allow_pickle=True).item()
-            print('    Loaded PS from',self.PS_file)
+            if self.vb: print('    Loaded PS from',self.PS_file)
 
         self.PS_z_HERA = None
         self.PS_z_HERA_file = f'{self.output_dir}PS_z_HERA{self.PS_suffix}.npy'
         if os.path.exists(self.PS_z_HERA_file) and clobber is False:
             self.PS_z_HERA = np.load(self.PS_z_HERA_file, allow_pickle=True)
             self.load_21cmsense(Park19=self.Park19)
-            print('    Loaded PS_z_HERA from',self.PS_z_HERA_file,'shape=',self.PS_z_HERA.shape)
+            if self.vb: print('    Loaded PS_z_HERA from',self.PS_z_HERA_file,'shape=',self.PS_z_HERA.shape)
 
         # Derivatives
         self.deriv_GS = None
         if os.path.exists(self.T_file.replace('dict','deriv_dict')) and clobber is False:
             self.deriv_GS = np.load(self.T_file.replace('dict','deriv_dict'), allow_pickle=True).item()
-            print('    Loaded GS derivatives from',self.T_file.replace('dict','deriv_dict'))
+            if self.vb: print('    Loaded GS derivatives from',self.T_file.replace('dict','deriv_dict'))
 
         self.deriv_PS = None
         if os.path.exists(self.PS_file.replace('dict','deriv_dict')) and clobber is False:
             self.deriv_PS = np.load(self.PS_file.replace('dict','deriv_dict'), allow_pickle=True).item()
             keys = list(self.deriv_PS.keys())
-            print('    Loaded PS derivatives from',self.PS_file.replace('dict','deriv_dict'),'shape=',self.deriv_PS[keys[0]].shape)
+            if self.vb: print('    Loaded PS derivatives from',self.PS_file.replace('dict','deriv_dict'),'shape=',self.deriv_PS[keys[0]].shape)
             
             # Get fiducial Poisson noise
             PS_err_Poisson = []
@@ -180,7 +186,7 @@ class Parameter(object):
         suffix = f'HIIDIM={self.HII_DIM}_BOXLEN={self.BOX_LEN}_fisher_*{regex}*{self.param}*'
         lightcone_filename = f'{self.output_dir}LightCone_z{self.min_redshift:.1f}_*{suffix}.h5'
 
-        print(f'    Searching for lightcones with name {lightcone_filename}')
+        if self.vb: print(f'    Searching for lightcones with name {lightcone_filename}')
         lc_files = glob.glob(lightcone_filename)
         fid_filename = lightcone_filename.replace(self.param,'fid')
         fid_files = glob.glob(fid_filename)
@@ -190,7 +196,7 @@ class Parameter(object):
         if 'MINI' not in self.param:
             lc_files = [f for f in lc_files if 'MINI' not in f]
 
-        print(f'    Found {len(lc_files)} lightcones to load')
+        if self.vb: print(f'    Found {len(lc_files)} lightcones to load')
 
         for f in lc_files:
             self.lightcones.append(p21c.LightCone.read(f))
@@ -250,8 +256,8 @@ class Parameter(object):
         if save:
             np.save(self.T_file, self.T, allow_pickle=True)
             np.save(self.theta_file, self.theta_params, allow_pickle=True)
-            print(f'    saved params to {self.theta_file}')
-            print(f'    saved GS to {self.T_file}')
+            if self.vb: print(f'    saved params to {self.theta_file}')
+            if self.vb: print(f'    saved GS to {self.T_file}')
 
         return
 
@@ -306,7 +312,7 @@ class Parameter(object):
         if save:
             GS_deriv_file = self.T_file.replace('dict','deriv_dict')
             np.save(GS_deriv_file, self.deriv_GS, allow_pickle=True)
-            print(f'    saved GS derivatives to {GS_deriv_file}')
+            if self.vb: print(f'    saved GS derivatives to {GS_deriv_file}')
 
         return
 
@@ -338,7 +344,7 @@ class Parameter(object):
             self.get_lightcones()
         chunk_indices_HERA = [np.argmin(np.abs(self.lc_redshifts - z_HERA)) for z_HERA in chunk_z_list_HERA][::-1]
 
-        print(f'    Making powerspectra in {len(chunk_z_list_HERA)} chunks')
+        if self.vb: print(f'    Making powerspectra in {len(chunk_z_list_HERA)} chunks')
 
         self.PS = {}
         use_ETHOS = self.lightcones[0].flag_options.pystruct['USE_ETHOS']
@@ -361,7 +367,7 @@ class Parameter(object):
             if key not in self.PS:
                 self.PS[key] = {} ##### TODO load PS nicely
 
-            print(f'    Getting PS for {key}, {self.param}={theta}')
+            if self.vb: print(f'    Getting PS for {key}, {self.param}={theta}')
 
             # Make PS
             self.PS_z_HERA, self.PS[key][f'{self.param}={theta}'] = powerspectra_chunks(lc,
@@ -374,10 +380,10 @@ class Parameter(object):
 
         if save:
             np.save(self.PS_file, self.PS, allow_pickle=True)
-            print(f'    saved PS to {self.PS_file}')
+            if self.vb: print(f'    saved PS to {self.PS_file}')
 
             np.save(self.PS_z_HERA_file, self.PS_z_HERA, allow_pickle=True)
-            print(f'    saved PS_z_HERA to {self.PS_z_HERA_file}')
+            if self.vb: print(f'    saved PS_z_HERA to {self.PS_z_HERA_file}')
 
         return
 
@@ -407,13 +413,13 @@ class Parameter(object):
         if os.path.exists(self.PS_err_dir) is False:
             raise AttributeError(f'Path to 21cmsense errors: {self.PS_err_dir} does not exist/cannot be found - check your path')
         else:
-            print(f'    Loading 21cmsense errors from {self.PS_err_dir}')
+            if self.vb: print(f'    Loading 21cmsense errors from {self.PS_err_dir}')
 
         PS_err   = []
         PS_sigma = []
         PS_fid   = []
         if Park19 == 'real':
-            Park19_noisefiles = np.array(glob.glob(self.PS_err_dir+f'../../Park19_ReionModel_21cmOnly/MockObs/Noise/TotalError_HERA331_PS_500Mpc_z*_1000hr.txt'))
+            Park19_noisefiles = np.array(glob.glob(self.PS_err_dir+f'../21cmSense_noise_Park19/TotalError_HERA331_PS_500Mpc_z*_1000hr.txt'))
             PS_z_Park19 = np.array([float(f.split('_z')[-1].split('_')[0]) for f in Park19_noisefiles])
 
             Park19_noisefiles = Park19_noisefiles[np.argsort(PS_z_Park19)] # low z to high z
@@ -479,8 +485,6 @@ class Parameter(object):
                 ls = 'dashed'
             else:
                 ls = 'solid'
-
-            print(cosmo_key)
 
             if plot:
                 fig, ax = plt.subplots(4,int(np.round(len(self.PS_z_HERA)/4,0)),
@@ -557,6 +561,6 @@ class Parameter(object):
         if save:
             PS_deriv_file = self.PS_file.replace('dict','deriv_dict')
             np.save(PS_deriv_file, self.deriv_PS, allow_pickle=True)
-            print(f'    saved PS derivatives to {PS_deriv_file}')
+            if self.vb: print(f'    saved PS derivatives to {PS_deriv_file}')
 
         return

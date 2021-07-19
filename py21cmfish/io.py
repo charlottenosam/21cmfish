@@ -1,5 +1,9 @@
 # useful functions
 import configparser
+import os
+
+code_path = os.path.abspath(os.path.dirname(__file__))
+base_path = code_path.strip(code_path.split('/')[-1])
 
 def read_config_params(item):
     """
