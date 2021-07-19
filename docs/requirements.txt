@@ -4,4 +4,4 @@ numpydoc
 powerbox
 sphinx>=1.3
 sphinx-rtd-theme
-nbsphinx
+nbsphinx>=0.8
