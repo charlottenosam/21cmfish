@@ -2,6 +2,6 @@ cached_property
 ipython
 numpydoc
 powerbox
-sphinx>=1.3
+sphinx==4.0.2
 sphinx-rtd-theme
-nbsphinx
+nbsphinx>=0.8
