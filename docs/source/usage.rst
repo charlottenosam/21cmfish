@@ -14,12 +14,14 @@ Start by creating a `.config` file for your runs. Have a look in
 
   - You can add any of the usual 21cmFAST AstroParams, UserParams and FlagOptions.
   - At the end of the config file list the AstroParams you want to vary
+  - You will need to change the `output_dir` to the full path to where you want
+  to save lightcones all other 21cmfish outputs
 
 To make the lightcones run:
 
 .. code-block:: python
 
-    python make_lightcones_for_fisher.py YOUR_CONFIG_FILE.config --h_PEAK 1.
+    python make_lightcones_for_fisher.py YOUR_CONFIG_FILE.config --dry_run
 
 I advise adding the `--dry_run` flag the first time you run to check the lightcones
 it will make before it tries to run 21cmFAST!
@@ -45,7 +47,7 @@ Parameters are loaded from the config file
     astro_params_vary, astro_params_fid = p21fish.get_params_fid(config_file=data_dir+'21cmFAST_config_files/EoS_mini.config')
 
 Each parameter is loaded as a separate :func:`py21cmfish.Parameter` object into a `parameters` dictionary. For example:
-    
+
  .. code-block:: python
 
     output_dir_Park19 = data_dir+'examples/EoS_mini/'
@@ -63,11 +65,11 @@ The Fisher matrix and its inverse are generated from the parameters dictionary:
 
  .. code-block:: python
 
-    Fij_matrix_PS, Finv_PS= p21fish.make_fisher_matrix(params_EoS, 
-                                                        fisher_params=astro_params_vary, 
+    Fij_matrix_PS, Finv_PS= p21fish.make_fisher_matrix(params_EoS,
+                                                        fisher_params=astro_params_vary,
                                                         hpeak=0.0, obs='PS',
-                                                        k_min=0.1, k_max=1, 
-                                                        z_min=5.7, z_max=30., 
+                                                        k_min=0.1, k_max=1,
+                                                        z_min=5.7, z_max=30.,
                                                         sigma_mod_frac=0.2,
                                                         add_sigma_poisson=True)
 

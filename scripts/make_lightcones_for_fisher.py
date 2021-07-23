@@ -89,8 +89,7 @@ print('    Running with %s...' % config.get('run','name'))
 # ==============================================================================
 random_seed = 12345
 
-base_path  = config.get('run','base_path')
-output_dir = base_path + config.get('run','output_dir')
+output_dir = config.get('run','output_dir')
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 print(f'    Loading from cache at {output_dir}')
