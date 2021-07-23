@@ -17,13 +17,10 @@ logger.setLevel(logging.INFO)
 
 # ==============================================================================
 # python make_lightcones_for_fisher.py 21cmFAST_config_files/ETHOS.config --dry_run
-# python make_lightcones_for_fisher.py --h_PEAK 1. --fix_astro_params
 # TODO =====
 # Took ---- Finished making lightcones, took 15.86 hours ---- for ETHOS.
 # Took 11 mins to make PS
 #
-
-
 # ==============================================================================
 # Import config files
 # config = configparser.ConfigParser(os.environ, delimiters=':')
@@ -35,13 +32,13 @@ parser = argparse.ArgumentParser()
 # ---- required arguments ---- :
 parser.add_argument("config_file", type=str, help="Path to config file")
 # ---- optional arguments ----
-parser.add_argument("--h_PEAK", type=float, help="h_PEAK for ETHOS model [default = vary]")
+parser.add_argument("--h_PEAK", type=float, help="h_PEAK for ETHOS model, only used if USE_ETHOS = True [default = vary]")
 parser.add_argument("--N_THREADS", type=int, help="Number of threads for 21cmFAST [default = 4]")
 parser.add_argument("--num_cores", type=int, help="Number of cores to run on [default = 2]")
 parser.add_argument("--q_scale", type=float, help="Percentage step for the parameters [default = 3%]")
 # ---- flags ------
 parser.add_argument("--save_Tb", action='store_true', help="Save BrightnessTemp boxes [default = False]")
-parser.add_argument("--fix_astro_params", action='store_true', help="Fix astro params (only vary k_peak, h_peak) [default = False]")
+parser.add_argument("--fix_astro_params", action='store_true', help="Fix astro params (only vary k_peak, h_peak for ETHOS runs) [default = False]")
 parser.add_argument("--dry_run", action='store_true', help="Just print the parameters, don't run anything [default = False]")
 
 args = parser.parse_args()
