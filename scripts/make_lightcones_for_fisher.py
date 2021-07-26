@@ -6,6 +6,7 @@ import itertools as it
 from joblib import Parallel, delayed
 import argparse
 import configparser
+import multiprocessing
 
 import py21cmfish as p21fish
 
@@ -44,47 +45,47 @@ parser.add_argument("--dry_run", action='store_true', help="Just print the param
 args = parser.parse_args()
 # ==============================================================================
 # Run Parameters
-N_THREADS = 4
-if args.N_THREADS:
-    N_THREADS  = args.N_THREADS
-print(f'    Running on {N_THREADS} threads')
-
-num_cores  = 2
+num_cores = multiprocessing.cpu_count() - 1
 if args.num_cores:
     num_cores  = args.num_cores
-print(f'    Running on {num_cores} cores')
+logger.info(f'Running on {num_cores} cores')
+
+N_THREADS = 1
+if args.N_THREADS:
+    N_THREADS  = args.N_THREADS
+logger.info(f'Running on {N_THREADS} threads')
 
 q_scale = 3
 if args.q_scale:
     q_scale  = args.q_scale
-print(f'    Calculating derivatives at {q_scale} percent from fiducial')
+logger.info(f'Calculating derivatives at {q_scale} percent from fiducial')
 
 if args.h_PEAK:
     h_PEAK  = args.h_PEAK
     fix_h_PEAK = True
     h_peaks = [h_PEAK]
-    print(f'    Running with h_peak = {h_PEAK}')
+    logger.info(f'Running with h_peak = {h_PEAK}')
 else:
     fix_h_PEAK = False
     h_PEAK = 1.
     h_peaks = np.arange(0., 1.1, 0.1)
-    print(f'    Running with varied h_peak')
+    logger.info(f'Running with varied h_peak')
 
 save_Tb = False
 if args.save_Tb:
     save_Tb = True
-    print(f'    Saving BrightnessTemp coeval boxes')
+    logger.info(f'Saving BrightnessTemp coeval boxes')
 
 fix_astro_params = False
 if args.fix_astro_params:
     fix_astro_params = True
-    print(f'    Fixing astro params')
+    logger.info(f'Fixing astro params')
 
 # ==============================================================================
 # Get config
 config_file = args.config_file
 config.read(config_file)
-print('    Running with %s...' % config.get('run','name'))
+logger.info(f'Running with {config.get("run","name")}...')
 
 # ==============================================================================
 random_seed = 12345
@@ -92,7 +93,7 @@ random_seed = 12345
 output_dir = config.get('run','output_dir')
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
-print(f'    Loading from cache at {output_dir}')
+logger.info(f'Loading from cache at {output_dir}')
 
 # --------------------------------------
 lightcone_quantities = ("brightness_temp", 'density')
@@ -126,8 +127,8 @@ max_redshift = float(config.get('redshifts','max'))
 HII_DIM = user_params["HII_DIM"]
 BOX_LEN = user_params["BOX_LEN"]
 
-print(f'    Making lightcone from z={min_redshift}-{max_redshift}')
-print(f'    Box HII_DIM={HII_DIM}, BOX_LEN={BOX_LEN}')
+logger.info(f'Making lightcone from z={min_redshift}-{max_redshift}')
+logger.info(f'Box HII_DIM={HII_DIM}, BOX_LEN={BOX_LEN}')
 
 # ==================================
 # Make dictionary of sets of parameters for each run
@@ -180,7 +181,7 @@ if flag_options['USE_ETHOS'] is True:
             astro_params_run['h_PEAK'] = h_peak
             astro_params_run_all[f'h_PEAK_{h_PEAK:.1f}_inv_k_PEAK_{inv_k}'] = astro_params_run.copy()
 
-print(f'    Going to make {len(astro_params_run_all)} lightcones')
+logger.info(f'Going to make {len(astro_params_run_all)} lightcones')
 
 if 'ALPHA_ESC_-0.03' in astro_params_run_all:
     assert astro_params_run_all['ALPHA_ESC_-0.03']['ALPHA_ESC'] != astro_params_run_all['ALPHA_ESC_0.03']['ALPHA_ESC'],\
@@ -193,7 +194,7 @@ if 'ALPHA_STAR_MINI_-0.03' in astro_params_run_all:
 if args.dry_run:
     for key in astro_params_run_all:
         print(key,':')
-        print('    ',astro_params_run_all[key])
+        logger.info(f'',astro_params_run_all[key])
 
 else:
     # ==================================
@@ -213,7 +214,7 @@ else:
         # Lightcone filename
         suffix = f'HIIDIM={HII_DIM}_BOXLEN={BOX_LEN}_fisher_{astro_params_key}'
         lightcone_filename = f'LightCone_z{min_redshift:.1f}_{suffix}.h5'
-        print('    Will save lightcone to',lightcone_filename)
+        logger.info(f'Will save lightcone to {lightcone_filename}')
 
         t1 = time.time()
 
@@ -239,10 +240,10 @@ else:
             p21c.cache_tools.clear_cache(direc=output_dir, kind=kind, show=True)
 
         lightcone_save = lightcone.save(fname=lightcone_filename, direc=output_dir, clobber=True)
-        print('    Saved lightcone to',lightcone_save)
+        logger.info(f'Saved lightcone to',lightcone_save)
 
         t2 = time.time()
-        print(f'    Done with {astro_params_key}, took {(t2-t1)/3600:.2f} hours')
+        logger.info(f'Done with {astro_params_key}, took {(t2-t1)/3600:.2f} hours')
 
         return
 
