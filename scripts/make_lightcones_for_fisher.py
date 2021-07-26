@@ -236,7 +236,7 @@ else:
             clear_kind = ['IonizedBox','TsBox','BrightnessTemp']
 
         for kind in clear_kind:
-            p21c.cache_tools.clear_cache(direc=output_dir, kind=kind)
+            p21c.cache_tools.clear_cache(direc=output_dir, kind=kind, show=True)
 
         lightcone_save = lightcone.save(fname=lightcone_filename, direc=output_dir, clobber=True)
         print('    Saved lightcone to',lightcone_save)
