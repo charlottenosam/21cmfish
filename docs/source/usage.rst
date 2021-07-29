@@ -21,12 +21,12 @@ To make the lightcones run:
 
 .. code-block:: python
 
-    python make_lightcones_for_fisher.py YOUR_CONFIG_FILE.config --dry_run
+    python make_lightcones_for_fisher.py PATH_TO_YOUR_CONFIG_FILE.config --dry_run
 
 I advise adding the `--dry_run` flag the first time you run to check the lightcones
 it will make before it tries to run 21cmFAST! 21cmfish can also create lightcones
 using multiprocessing and multithreading, which you can specify via (`--num_cores`
-and `--N_THREADS`. By default, 21cmfish will run on n_cpus - 1. 
+and `--N_THREADS`. By default, 21cmfish will run on n_cpus - 1.
 
 Process lightcones for each parameter
 ======================================

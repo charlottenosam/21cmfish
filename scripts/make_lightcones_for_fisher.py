@@ -17,14 +17,13 @@ logger = logging.getLogger("21cmFAST")
 logger.setLevel(logging.INFO)
 
 # ==============================================================================
-# python make_lightcones_for_fisher.py 21cmFAST_config_files/ETHOS.config --dry_run
+# python make_lightcones_for_fisher.py ../21cmFAST_config_files/Park19.config --dry_run
 # TODO =====
 # Took ---- Finished making lightcones, took 15.86 hours ---- for ETHOS.
 # Took 11 mins to make PS
 #
 # ==============================================================================
 # Import config files
-# config = configparser.ConfigParser(os.environ, delimiters=':')
 config = configparser.ConfigParser(delimiters=':')
 config.optionxform = str
 
