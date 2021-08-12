@@ -40,7 +40,7 @@ class Parameter(object):
             TODO
 
         Park19 : None, str
-            Use Park+19 z bins when calculating power spectra 
+            Use Park+19 z bins when calculating power spectra
             https://ui.adsabs.harvard.edu/abs/2019MNRAS.484..933P/abstract
             'approx' = use our approximation of Park19 noise bins
             'real' = use noise from Jaehong
@@ -144,18 +144,18 @@ class Parameter(object):
             self.deriv_PS = np.load(self.PS_file.replace('dict','deriv_dict'), allow_pickle=True).item()
             keys = list(self.deriv_PS.keys())
             if self.vb: print('    Loaded PS derivatives from',self.PS_file.replace('dict','deriv_dict'),'shape=',self.deriv_PS[keys[0]].shape)
-            
+
             # Get fiducial Poisson noise
             PS_err_Poisson = []
             for i in range(len(self.PS_z_HERA)):
                 PS_err_Poisson_sim = np.array(self.PS[keys[0]][f'{param}={self.theta_params[keys[0]][self.fid_i]}'][i]['err_delta'])
-                
-                # interpolate onto 21cmsense k values                
+
+                # interpolate onto 21cmsense k values
                 k_sim = self.PS[keys[0]][f'{param}={self.theta_params[keys[0]][self.fid_i]}'][i]['k']
                 k_err = self.PS_err[i]['k']*0.7 # h Mpc^-1 --> Mpc^-1
 
                 PS_err_Poisson.append(np.interp(k_err, k_sim, PS_err_Poisson_sim))
-            
+
             self.PS_err_Poisson = np.array(PS_err_Poisson)
 
         if new:
@@ -166,7 +166,7 @@ class Parameter(object):
             # Make global signal and derivatives
             self.get_global_signal()
             self.derivative_global_signal()
-            
+
             # Make power spectrum, load PS noise and make derivatives
             self.get_power_spectra()
             self.load_21cmsense(Park19=Park19)
@@ -221,7 +221,7 @@ class Parameter(object):
             if use_ETHOS:
                 h_PEAK = np.round(lc.astro_params.pystruct['h_PEAK'],1)
                 key = f'h_PEAK={h_PEAK:.1f}'
-            else: 
+            else:
                 key = self.cosmology
 
             if key not in self.T:
@@ -317,12 +317,18 @@ class Parameter(object):
         return
 
 
-    def get_power_spectra(self, n_psbins=50, save=True):
+    def get_power_spectra(self, n_psbins=50, k_min=None, k_max=None, save=True):
         """
         Make 21cm power spectra from redshift chunk list (bin edges)
 
         Parameters
         ----------
+        n_psbins : int
+            Number of k bins
+        k_min : float, optional
+            Minimum k value for PS [in 1/Mpc]
+        k_max : float, optional
+            Maximum k value for PS [in 1/Mpc]
         save : bool
             Save PS to file?
         """
@@ -353,7 +359,7 @@ class Parameter(object):
             if use_ETHOS:
                 h_PEAK = np.round(lc.astro_params.pystruct['h_PEAK'],1)
                 key = f'h_PEAK={h_PEAK:.1f}'
-            else: 
+            else:
                 key = self.cosmology
 
             theta  = lc.astro_params.pystruct[self.param_21cmfast]
@@ -370,11 +376,16 @@ class Parameter(object):
             if self.vb: print(f'    Getting PS for {key}, {self.param}={theta}')
 
             # Make PS
+            if k_min is None:
+                k_min = self.k_fundamental
+            if k_max is None:
+                k_max = self.k_max
+
             self.PS_z_HERA, self.PS[key][f'{self.param}={theta}'] = powerspectra_chunks(lc,
-                                                                     n_psbins=n_psbins,
-                                                                     chunk_indices=chunk_indices_HERA,
-                                                                     min_k=self.k_fundamental,
-                                                                     max_k=self.k_max)
+                                                                 n_psbins=n_psbins,
+                                                                 chunk_indices=chunk_indices_HERA,
+                                                                 k_min=k_min,
+                                                                 k_max=k_max)
 
             del lc
 
@@ -512,12 +523,17 @@ class Parameter(object):
                 #     theta_fid = self.theta_params[cosmo_key][0]
                 # theta.append(theta_fid)
                 # PS.append(self.PS[cosmo_key][f'{self.param}={theta_fid}'][i]['delta'])
-                
+
                 k = self.PS[cosmo_key][theta_key][i]['k']
 
+                # Sort PS in order of increasing theta
+                # [x-h, x, x+h] for two-sided Derivatives (all astro params) where x is fid
+                # [x, x+h1, x+h2] for asymmetric derivatives (1/kpeak)
                 theta = np.array(theta)
                 PS    = np.array(PS)[np.argsort(theta)]
                 theta = theta[np.argsort(theta)]
+
+                assert theta[:-1] > theta[0], "thetas are not ordered correctly"
 
                 if i==0:
                     print('theta =',theta)
@@ -534,6 +550,8 @@ class Parameter(object):
                                         label='1/k_PEAK^%.1f < %.1e' % (self.k_PEAK_order, theta[j]))
                 else:
                     deriv = np.gradient(PS, theta, axis=0)
+                    assert (deriv[1] == (PS[2]-PS[0])/(theta[2]-theta[0])).all(), 'two-sided derivative is wrong'
+
 
                 # interpolate onto k for 21cmsense in 1/Mpc [21cmsense output is in h/Mpc]
                 self.deriv_PS[cosmo_key][i] = np.interp(self.PS_err[i]['k']*0.7, k, deriv[1])

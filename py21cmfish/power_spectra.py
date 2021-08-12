@@ -23,10 +23,22 @@ def compute_power(box,
                    length,
                    n_psbins,
                    log_bins=True,
+                   k_min=None,
+                   k_max=None,
                    ignore_kperp_zero=True,
                    ignore_kpar_zero=False,
                    ignore_k_zero=False):
     """
+    Calculate power spectrum for a redshift chunk
+
+    TODO
+
+    Input:
+        box : lightcone brightness_temp chunk
+        length :
+        n_psbins : int
+            number of k bins
+
     Output:
         k : 1/Mpc
         delta : mK^2
@@ -44,10 +56,19 @@ def compute_power(box,
     if ignore_k_zero:
         k_weights[n0 // 2, n0 // 2, n1 // 2] = 0
 
+    # Define k bins
+    if k_min is None and k_max is None:
+        bins = n_psbins
+    else:
+        if log_bins:
+            bins = np.logspace(np.log10(k_min), np.log10(k_max), n_psbins)
+        else:
+            bins = np.linspace(k_min, k_max, n_psbins)
+
     res = get_power(
         box,
         boxlength=length,
-        bins=n_psbins,
+        bins=bins,
         bin_ave=False,
         get_variance=True,
         log_bins=log_bins,
@@ -66,10 +87,11 @@ def compute_power(box,
     return res
 
 
-def powerspectra(brightness_temp, n_psbins=50, nchunks=10, min_k=0.1, max_k=1.0, logk=True):
+def powerspectra(brightness_temp, n_psbins=50, nchunks=10,
+                k_min=0.1, k_max=1.0, logk=True):
     """
     Make power spectra for given number of equally spaced chunks
-    
+
     Output:
         k : 1/Mpc
         delta : mK^2
@@ -98,7 +120,7 @@ def powerspectra(brightness_temp, n_psbins=50, nchunks=10, min_k=0.1, max_k=1.0,
     return data
 
 
-def powerspectra_np(brightness_temp, n_psbins=50, nchunks=10, min_k=0.1, max_k=1.0, logk=True):
+def powerspectra_np(brightness_temp, n_psbins=50, nchunks=10, k_min=0.1, k_max=1.0, logk=True):
     """
     Make power spectra for given number of equally spaced chunks
 
@@ -128,8 +150,8 @@ def powerspectra_np(brightness_temp, n_psbins=50, nchunks=10, min_k=0.1, max_k=1
 def powerspectra_chunks(lightcone, nchunks=10,
                         chunk_indices=None,
                         n_psbins=50,
-                        min_k=0.1,
-                        max_k=1.0,
+                        k_min=0.1,
+                        k_max=1.0,
                         logk=True,
                         model_uncertainty=0.15,
                         error_on_model=True,
@@ -139,14 +161,19 @@ def powerspectra_chunks(lightcone, nchunks=10,
                         vb=False):
 
     """
-    Make power spectra for given number of equally spaced chunks OR list of chunk indices
+    Make power spectra for given number of equally spaced redshift chunks OR list of redshift chunk lightcone indices
 
     Output:
         k : 1/Mpc
         delta : mK^2
         err_delta : mK^2
+
+    TODO this isn't using k_min, k_max...
     """
     data = []
+
+    # Create lightcone redshift chunks
+    # If chunk indices not given, divide lightcone into nchunks equally spaced redshift chunks
     if chunk_indices is None:
         chunk_indices = list(range(0,lightcone.n_slices,round(lightcone.n_slices / nchunks),))
 
@@ -161,6 +188,8 @@ def powerspectra_chunks(lightcone, nchunks=10,
     chunk_redshift = np.zeros(nchunks)
 
     lc_redshifts = lightcone.lightcone_redshifts
+
+    # Calculate PS in each redshift chunk
     for i in range(nchunks):
         if vb:
             print(f'Chunk {i}/{nchunks}...')
@@ -178,6 +207,8 @@ def powerspectra_chunks(lightcone, nchunks=10,
                     (lightcone.user_params.BOX_LEN, lightcone.user_params.BOX_LEN, chunklen),
                     n_psbins,
                     log_bins=logk,
+                    k_min=k_min,
+                    k_max=k_max,
                     ignore_kperp_zero=ignore_kperp_zero,
                     ignore_kpar_zero=ignore_kpar_zero,
                     ignore_k_zero=ignore_k_zero,)

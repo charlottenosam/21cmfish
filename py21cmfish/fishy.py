@@ -98,7 +98,7 @@ def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
                                           sigma_obs=sigma_PS, sigma_mod=sigma_mod, sigma_poisson=sigma_poisson, axis=axis_PS)
                 else:
                     Fij_matrix[i,j] = Fij(params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where],
-                                          params_dict[p2].deriv_PS[cosmo_key][z_where][:,k_where], 
+                                          params_dict[p2].deriv_PS[cosmo_key][z_where][:,k_where],
                                           sigma_obs=sigma_PS, sigma_mod=sigma_mod, sigma_poisson=sigma_poisson, axis=axis_PS)
 
     Finv = np.linalg.inv(Fij_matrix)
@@ -199,14 +199,11 @@ def get_ellipse_params(i: int, j: int, cov: np.array):
         return np.sqrt(0.5*(cov[i,i] + cov[j,j]) + sign*np.sqrt(0.25*(cov[i,i] - cov[j,j])**2. + cov[i,j]*cov[j,i]))
 
     def angle_deg(cov):
-        return np.degrees(0.5*np.arctan(2*cov[i,j]/(cov[i,i] - cov[j,j])))
+        return np.degrees(0.5*np.arctan2(2*cov[i,j],(cov[i,i] - cov[j,j])))
 
     a = length(cov, sign=1)
     b = length(cov, sign=-1)
     t = angle_deg(cov)
-
-    if (cov[i,i] < cov[j,j]):
-        a, b = b, a
 
     return a, b, t
 
