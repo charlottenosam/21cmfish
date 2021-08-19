@@ -33,13 +33,19 @@ def compute_power(box,
 
     TODO
 
-    Input:
-        box : lightcone brightness_temp chunk
-        length :
-        n_psbins : int
-            number of k bins
+    Parameters
+    ----------
+    box :
+        lightcone brightness_temp chunk
 
-    Output:
+    length :
+        TODO
+
+    n_psbins : int
+        number of k bins
+
+    Returns
+    ----------
         k : 1/Mpc
         delta : mK^2
         err_delta : mK^2

@@ -14,8 +14,7 @@ Start by creating a `.config` file for your runs. Have a look in
 
   - You can add any of the usual 21cmFAST AstroParams, UserParams and FlagOptions.
   - At the end of the config file list the AstroParams you want to vary
-  - You will need to change the `output_dir` to the full path to where you want
-  to save lightcones all other 21cmfish outputs
+  - You will need to change the `output_dir` to the full path to where you want to save lightcones all other 21cmfish outputs.
 
 To make the lightcones run:
 
