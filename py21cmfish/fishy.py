@@ -196,9 +196,19 @@ def get_ellipse_params(i: int, j: int, cov: np.array):
 
     # equations 1-4 Coe 2009. returns in degrees
     def length(cov, sign=1):
+        """
+        Calculate length of the ellipse semi-major/semi-minor axes
+
+        Aka the eigenvalues of the covariance matrix
+        """
         return np.sqrt(0.5*(cov[i,i] + cov[j,j]) + sign*np.sqrt(0.25*(cov[i,i] - cov[j,j])**2. + cov[i,j]*cov[j,i]))
 
     def angle_deg(cov):
+        """
+        Calculate angle of ellipse in degrees (anti-clockwise from x axis)
+
+        Gets the quadrant right!
+        """
         return np.degrees(0.5*np.arctan2(2*cov[i,j],(cov[i,i] - cov[j,j])))
 
     a = length(cov, sign=1)
