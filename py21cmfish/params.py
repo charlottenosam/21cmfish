@@ -428,7 +428,7 @@ class Parameter(object):
 
         PS_err   = []
         PS_sigma = []
-        PS_fid   = []
+        # PS_fid   = []
         if Park19 == 'real':
             Park19_noisefiles = np.array(glob.glob(self.PS_err_dir+f'../21cmSense_noise_Park19/TotalError_HERA331_PS_500Mpc_z*_1000hr.txt'))
             PS_z_Park19 = np.array([float(f.split('_z')[-1].split('_')[0]) for f in Park19_noisefiles])
@@ -444,12 +444,17 @@ class Parameter(object):
                             "err_mod":noise[:,1], "err_opt":noise[:,1], "err_pess":noise[:,1]}
                 PS_err.append(PS_dict)
                 PS_sigma.append(noise[:,1])
-                PS_fid.append(noise[:,1])
+                # PS_fid.append(noise[:,1])
 
         else:
             for MHz in self.chunk_MHz:
                 k        = np.genfromtxt(self.PS_err_dir+f'klist_SplitCore_HERA350.drift_mod_{self.chunk_MHz[-1]/1000:.3f}.txt')
-                delta    = np.genfromtxt(self.PS_err_dir+f'P21model_SplitCore_HERA350.drift_mod_{MHz/1000:.3f}.txt')
+                try:
+                    delta = np.genfromtxt(self.PS_err_dir+f'P21model_SplitCore_HERA350.drift_mod_{MHz/1000:.3f}.txt')
+                except:
+                    delta = np.zeros_like(k)
+                    if self.vb: print(f'    No delta file found, setting = nan')
+
                 err_mod  = np.genfromtxt(self.PS_err_dir+f'Errlist_SplitCore_HERA350.drift_mod_{MHz/1000:.3f}.txt')
                 try:
                     err_opt  = np.genfromtxt(self.PS_err_dir+f'Errlist_SplitCore_HERA350.drift_opt_{MHz/1000:.3f}.txt')
@@ -462,11 +467,18 @@ class Parameter(object):
                             "err_mod":err_mod, "err_opt":err_opt, "err_pess":err_pess}
                 PS_err.append(PS_dict)
                 PS_sigma.append(err_mod)
-                PS_fid.append(delta)
+                # PS_fid.append(delta)
 
         self.PS_err   = np.array(PS_err)
         self.PS_sigma = np.array(PS_sigma)
-        self.PS_fid   = np.array(PS_fid)
+        # self.PS_fid   = np.array(PS_fid)
+
+        ps_fid_all = self.PS[self.cosmology][list(self.PS[self.cosmology].keys())[self.fid_i]]
+        self.PS_fid = np.empty((len(self.PS_z_HERA),len(self.PS_err[0]['k'])))
+        for i in range(len(self.PS_z_HERA)):
+            k = ps_fid_all[i]['k']
+            PS_interp = np.interp(self.PS_err[i]['k']*0.7, k, ps_fid_all[i]['delta'])
+            self.PS_fid[i] = PS_interp
 
         return
 

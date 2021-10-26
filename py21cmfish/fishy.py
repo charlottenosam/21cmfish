@@ -222,7 +222,8 @@ def plot_ellipse(ax, par1, par2, parameters, fiducial, cov,
                  resize_lims=True, positive_definite=[],
                  N_std=[1.,2.,3.], plot_rescale = 4.,
                  kwargs=[{'ls': '-'}],
-                 default_kwargs={'facecolor':'tab:blue', 'lw':0}):
+                 color='tab:blue',
+                 default_kwargs={'lw':0}):
     """
     Plot N-sigma ellipses, from Coe 2009.
 
@@ -284,7 +285,7 @@ def plot_ellipse(ax, par1, par2, parameters, fiducial, cov,
         e = Ellipse(
             xy=(fiducial[i], fiducial[j]),
             width=a * 2 * alpha_std[N], height=b * 2 * alpha_std[N],
-            angle=theta, zorder=0, **kwargs_n)
+            angle=theta, zorder=0, facecolor=color, **kwargs_n)
 
         ax.add_artist(e)
         e.set_clip_box(ax.bbox)
@@ -311,7 +312,9 @@ def plot_ellipse(ax, par1, par2, parameters, fiducial, cov,
 def plot_triangle(params, fiducial, cov, fig=None, ax=None,
                    positive_definite=[],
                    labels=None,
+                   resize_lims=True,
                    N_std=[1.,2.], plot_rescale = 4.,
+                   ellipse_color='tab:blue',
                    ellipse_kwargs=[{},
                                   {'alpha':0.5}],
                    title_fontsize=20,
@@ -343,6 +346,9 @@ def plot_triangle(params, fiducial, cov, fig=None, ax=None,
 
         positive_definite: list
             List of parameter strings which are positive definite
+
+        resize_lims : bool
+            Resize ellipse limits to scale of the errors [default = True]
 
         N_std : list
             List of number of standard deviations to plot
@@ -420,6 +426,8 @@ def plot_triangle(params, fiducial, cov, fig=None, ax=None,
                                  params[jj], params, fiducial, cov,
                                  positive_definite=positive_definite,
                                  N_std=N_std, plot_rescale=plot_rescale,
+                                 resize_lims=resize_lims,
+                                 color=ellipse_color,
                                  kwargs=ellipse_kwargs)
                     if jj == nparams-1:
                         ax[jj, ii].set_xlabel(labels[ii], **xlabel_kwargs)
@@ -444,7 +452,7 @@ def plot_triangle(params, fiducial, cov, fig=None, ax=None,
 
                     gauss = rescale * np.exp(-(x-fiducial[ii])**2 / (2 * sig**2)) / (sig * np.sqrt(2*np.pi))
                     ax[jj, ii].plot(x, gauss, **plot1D_kwargs)
-                    ax[jj, ii].set_title(f'{labels[ii]}$={fiducial[ii]:.2f}\pm{sig:.2f}$', fontsize=title_fontsize)
+                    ax[jj, ii].set_title(f'{labels[ii]}$={fiducial[ii]:.2f} \pm {sig:.2f}$', fontsize=title_fontsize)
                     if ii == nparams-1:
                         ax[jj, ii].set_xlabel(labels[ii], **xlabel_kwargs)
                 else:
