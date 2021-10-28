@@ -309,6 +309,68 @@ def plot_ellipse(ax, par1, par2, parameters, fiducial, cov,
     return sigma_x, sigma_y, sigma_xy
 
 
+def title_double_ellipses(axes, labels,
+                           chain=None,
+                           med=None, sigma=None,
+                           title_fontsize=18, title_pad=55,
+                           vspace=0.,
+                           color='k'
+                           ):
+    """
+    Plot title with parameter constraints from 2 covariance matrixes/chains
+
+    Parameters
+    ----------
+        axes : matpotlib axess
+            axes upon which the titles will be added
+
+        labels : list(ndim,)
+            list of parameter names
+
+        chain : array_like(ndim,), optional
+            MCMC chain of parameters
+
+        med : array_like(ndim,), optional
+            list of median values
+
+        sigma : array_like(ndim,)
+            list of sigmas
+
+        color : string
+            color to plot ellipse with
+
+
+    Returns
+    -------
+        None
+
+    """
+
+    if chain is not None:
+        l, med, u = np.percentile(chain, [16,50,84], axis=0)
+        q_m, q_p  = med - l, u - med
+
+    for i in range(len(labels)):
+        if med[i] < 100:
+            fmt = "{{0:{0}}}".format('.2f').format
+        else:
+            fmt = "{{0:{0}}}".format('.0f').format
+
+        if chain is not None:
+            CI = r"${{{0}}}_{{-{1}}}^{{+{2}}}$"
+            CI = CI.format(fmt(med[i]), fmt(q_m[i]), fmt(q_p[i]))
+        else:
+            CI = r"${{{0}}} \pm {{{1}}}$"
+            CI = CI.format(fmt(med[i]), fmt(sigma[i]))
+
+        axes[i,i].set_title(f'{labels[i]}', fontsize=title_fontsize, pad=title_pad)
+        axes[i,i].annotate(f'{CI}',
+                           xy=(0.5,1.05+vspace), ha='center',
+                           xycoords='axes fraction', color=color)
+
+    return
+
+
 def plot_triangle(params, fiducial, cov, fig=None, ax=None,
                    positive_definite=[],
                    labels=None,
