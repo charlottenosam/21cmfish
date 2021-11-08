@@ -473,7 +473,9 @@ class Parameter(object):
         self.PS_sigma = np.array(PS_sigma)
         # self.PS_fid   = np.array(PS_fid)
 
-        ps_fid_all = self.PS[self.cosmology][list(self.PS[self.cosmology].keys())[self.fid_i]]
+        fid_key = sorted(list(self.PS[self.cosmology].keys()))[self.fid_i]
+        print(f'Fiducial: {fid_key}')
+        ps_fid_all = self.PS[self.cosmology][fid_key]
         self.PS_fid = np.empty((len(self.PS_z_HERA),len(self.PS_err[0]['k'])))
         for i in range(len(self.PS_z_HERA)):
             k = ps_fid_all[i]['k']

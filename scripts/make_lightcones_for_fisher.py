@@ -33,8 +33,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("config_file", type=str, help="Path to config file")
 # ---- optional arguments ----
 parser.add_argument("--h_PEAK", type=float, help="h_PEAK for ETHOS model, only used if USE_ETHOS = True [default = vary]")
-parser.add_argument("--N_THREADS", type=int, help="Number of threads for 21cmFAST [default = 4]")
-parser.add_argument("--num_cores", type=int, help="Number of cores to run on [default = 2]")
+parser.add_argument("--N_THREADS", type=int, help="Number of threads for 21cmFAST [default = 1, clogs memory if you use too many]")
+parser.add_argument("--num_cores", type=int, help="Number of cores to run on [default = n_cpu - 1]")
 parser.add_argument("--q_scale", type=float, help="Percentage step for the parameters [default = 3%]")
 # ---- flags ------
 parser.add_argument("--save_Tb", action='store_true', help="Save BrightnessTemp boxes [default = False]")
