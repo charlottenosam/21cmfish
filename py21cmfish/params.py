@@ -23,7 +23,8 @@ class Parameter(object):
                 cosmology='CDM',
                 clobber=False,
                 new=False,
-                vb=True
+                vb=True,
+                fidonly = False,
                 ):
 
         """
@@ -61,6 +62,11 @@ class Parameter(object):
 
         self.param = param
         print('########### fisher set up for',self.param)
+
+        if fidonly:
+            print('Only calculating Fiducial tho')
+
+
 
         self.k_PEAK_order = k_PEAK_order
         if self.param == 'k_PEAK':
@@ -165,12 +171,14 @@ class Parameter(object):
 
             # Make global signal and derivatives
             self.get_global_signal()
-            self.derivative_global_signal()
 
             # Make power spectrum, load PS noise and make derivatives
             self.get_power_spectra()
             self.load_21cmsense(Park19=Park19)
-            self.derivative_power_spectrum()
+            if not fidonly:
+                self.derivative_global_signal()
+                self.derivative_power_spectrum()
+
 
         return
 

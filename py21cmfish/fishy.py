@@ -3,6 +3,113 @@ from matplotlib.patches import Ellipse
 import matplotlib.pyplot as plt
 
 
+def make_diff_array(params_dict, params_dict_alt, fisher_params, hpeak=0.0, obs='GS',
+                        sigma=None, sigma_mod_frac=0.,
+                        k_min=None, k_max=None,
+                        z_min=None, z_max=None,
+                        axis_PS=None, cosmo_key='CDM',
+                        add_sigma_poisson=False):
+    """
+    Make array of differences in parameters from global signal or powerspectra
+
+    Parameters
+    ----------
+    params_dict : dict
+        Dictionary of parameter objects
+    params_dict_alt: dict
+        Same but for the second parameter set. Need only fiducial, not derivatives. Make sure full overlap on fisher_params.
+    fisher_params : list
+        List of parameter strings to use for Fisher matrix (these strings must be the keys to params_dict)
+    diff_obs : list
+        List of the observable subtracted between the "data" the case and the fiducial.
+    hpeak : float
+        TODO
+    obs : str
+        'GS' - global signal, 'PS' - power spectrum
+    sigma : None,array
+        TODO
+    sigma_mod_frac : float
+        Fraction of modelling error in PS e.g. 0.2 adds a 20% error on the PS in quadrature to the 21cmsense error
+    k_min : None,float
+        Minimum k to use for PS [1/Mpc]
+    k_max : None,float
+        Maximum k to use for PS [1/Mpc]
+    z_min : None,float
+        Minimum redshift to use for PS
+    z_max : None,float
+        Maximum redshift to use for PS
+    axis_PS : None,int
+        TODO
+    cosmo_key : None,str
+        TODO
+    add_sigma_poisson : bool
+        TODO
+
+    Return
+    -------
+    Di_vector
+    """
+
+    Di_vector = np.zeros(len(fisher_params))
+
+
+    for i,p1 in enumerate(fisher_params):
+
+        if i == 0 and obs == 'PS':
+            k_where = np.arange(len(params_dict[p1].PS_err[0]['k']))
+            if k_min is not None and k_max is not None: # k range in 1/Mpc
+                k_where  = np.where((params_dict[p1].PS_err[0]['k'] <= k_max) & (params_dict[p1].PS_err[0]['k'] >= k_min))[0]
+
+            z_where = np.arange(len(params_dict[p1].PS_z_HERA))
+            if z_min is not None and z_max is not None:
+                z_where  = np.where((params_dict[p1].PS_z_HERA <= z_max) & (params_dict[p1].PS_z_HERA >= z_min))[0]
+
+            # Model error (e.g. 20%)
+            sigma_mod = sigma_mod_frac * params_dict[p1].PS_fid[z_where][:,k_where]
+            # if cosmo_key is None:
+            # cosmo_key = params_dict[p1].deriv_PS.keys()[0]
+            PS0 = params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where]
+
+            # Poisson error
+            if add_sigma_poisson:
+                sigma_poisson = params_dict[p1].PS_err_Poisson[z_where][:,k_where]
+            else:
+                sigma_poisson = 0.
+
+            # Fisher as a function of redshift or k?
+            if axis_PS is not None:
+                Fij_matrix = np.zeros((PS0.shape[axis_PS-1], len(fisher_params), len(fisher_params)))
+
+        if obs == 'GS':
+            if i==0:
+                print('GS shape:',params_dict[p1].deriv_GS[cosmo_key].shape)
+
+            #TODO: add fiducial GS?
+            diff_obs = 0.0*params_dict[p1].deriv_GS[cosmo_key]
+            Di_vector[i] = Fij(params_dict[p1].deriv_GS[cosmo_key], diff_obs,
+                                  sigma_obs=1, sigma_mod=0.)
+        elif obs == 'PS':
+            if sigma is None:
+                sigma_PS = params_dict[p1].PS_sigma[z_where][:,k_where]
+            else:
+                sigma_PS = sigma
+
+            diff_obs = params_dict[p1].PS_fid[z_where][:,k_where] - params_dict_alt[p1].PS_fid[z_where][:,k_where]
+            if i==0:
+                print('PS shape:',params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where].shape)
+
+            if axis_PS is not None:
+                Di_vector[:,i] = Fij(params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where],
+                                      diff_obs,
+                                      sigma_obs=sigma_PS, sigma_mod=sigma_mod, sigma_poisson=sigma_poisson, axis=axis_PS)
+            else:
+                Di_vector[i] = Fij(params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where],
+                                      diff_obs,
+                                      sigma_obs=sigma_PS, sigma_mod=sigma_mod, sigma_poisson=sigma_poisson, axis=axis_PS)
+
+    return Di_vector
+
+
 def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
                         sigma=None, sigma_mod_frac=0.,
                         k_min=None, k_max=None,
