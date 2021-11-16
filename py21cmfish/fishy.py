@@ -3,7 +3,7 @@ from matplotlib.patches import Ellipse
 import matplotlib.pyplot as plt
 
 
-def make_diff_array(params_dict, params_dict_alt, fisher_params, hpeak=0.0, obs='GS',
+def make_diff_array(params_dict, PS_altered, fisher_params, hpeak=0.0, obs='GS',
                         sigma=None, sigma_mod_frac=0.,
                         k_min=None, k_max=None,
                         z_min=None, z_max=None,
@@ -52,6 +52,15 @@ def make_diff_array(params_dict, params_dict_alt, fisher_params, hpeak=0.0, obs=
 
     Di_vector = np.zeros(len(fisher_params))
 
+    if obs == 'PS':
+        diff_obs_gen = params_dict[fisher_params[0]].PS_fid - PS_altered
+    else:
+        #TODO: add the same functionality for the GS
+        diff_obs_gen = 0.0*params_dict[p1].deriv_GS[cosmo_key]
+
+
+
+
 
     for i,p1 in enumerate(fisher_params):
 
@@ -84,8 +93,6 @@ def make_diff_array(params_dict, params_dict_alt, fisher_params, hpeak=0.0, obs=
             if i==0:
                 print('GS shape:',params_dict[p1].deriv_GS[cosmo_key].shape)
 
-            #TODO: add fiducial GS?
-            diff_obs = 0.0*params_dict[p1].deriv_GS[cosmo_key]
             Di_vector[i] = Fij(params_dict[p1].deriv_GS[cosmo_key], diff_obs,
                                   sigma_obs=1, sigma_mod=0.)
         elif obs == 'PS':
@@ -94,7 +101,7 @@ def make_diff_array(params_dict, params_dict_alt, fisher_params, hpeak=0.0, obs=
             else:
                 sigma_PS = sigma
 
-            diff_obs = params_dict[p1].PS_fid[z_where][:,k_where] - params_dict_alt[p1].PS_fid[z_where][:,k_where]
+            diff_obs = diff_obs_gen[z_where][:,k_where]
             if i==0:
                 print('PS shape:',params_dict[p1].deriv_PS[cosmo_key][z_where][:,k_where].shape)
 
