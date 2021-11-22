@@ -68,7 +68,7 @@ else:
     fix_h_PEAK = False
     h_PEAK = 1.
     h_peaks = np.arange(0., 1.1, 0.1)
-    logger.info(f'Running with varied h_peak')
+    logger.info(f'Running with varied h_peak [if USE_ETHOS = True]')
 
 save_Tb = False
 if args.save_Tb:
