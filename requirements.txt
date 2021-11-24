@@ -1,5 +1,6 @@
 # List required packages in this file, one per line.
 matplotlib
 numpy
+joblib
 # 21cmFAST
 powerbox
