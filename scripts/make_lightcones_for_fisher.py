@@ -248,7 +248,11 @@ else:
 
     t1 = time.time()
 
-    Parallel(n_jobs=num_cores)(delayed(make_lightcone)(key) for key in astro_params_run_all.keys())
+    if num_cores == 1:
+        for key in astro_params_run_all.keys():
+            make_lightcone(key)
+    else:
+        Parallel(n_jobs=num_cores)(delayed(make_lightcone)(key) for key in astro_params_run_all.keys())
 
 
     t2 = time.time()
