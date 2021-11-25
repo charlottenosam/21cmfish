@@ -36,6 +36,7 @@ parser.add_argument("--h_PEAK", type=float, help="h_PEAK for ETHOS model, only u
 parser.add_argument("--N_THREADS", type=int, help="Number of threads for 21cmFAST [default = 1, clogs memory if you use too many]")
 parser.add_argument("--num_cores", type=int, help="Number of cores to run on [default = n_cpu - 1]")
 parser.add_argument("--q_scale", type=float, help="Percentage step for the parameters [default = 3%]")
+parser.add_argument("--random_seed", type=int, help="Random seed [default = 12345]")
 # ---- flags ------
 parser.add_argument("--save_Tb", action='store_true', help="Save BrightnessTemp boxes [default = False]")
 parser.add_argument("--fix_astro_params", action='store_true', help="Fix astro params (only vary k_peak, h_peak for ETHOS runs) [default = False]")
@@ -80,6 +81,11 @@ if args.fix_astro_params:
     fix_astro_params = True
     logger.info(f'Fixing astro params')
 
+random_seed = 12345
+if args.random_seed:
+    random_seed  = args.random_seed
+logger.info(f'Using random_seed = {random_seed}')
+
 # ==============================================================================
 # Get config
 config_file = args.config_file
@@ -87,8 +93,6 @@ config.read(config_file)
 logger.info(f'Running with {config.get("run","name")}...')
 
 # ==============================================================================
-random_seed = 12345
-
 output_dir = config.get('run','output_dir')
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
@@ -198,9 +202,11 @@ if args.dry_run:
 else:
     # ==================================
     # Initial Conditions
+    logger.info(f'Making initial conditions')
     initial_conditions = p21c.initial_conditions(user_params=user_params,
                                                  random_seed=random_seed,
                                                  direc=output_dir)
+    logger.info(f'Made initial conditions')
 
     # ==================================
     # Run each filter
@@ -249,11 +255,13 @@ else:
     t1 = time.time()
 
     if num_cores == 1:
+        print(astro_params_run_all.keys())
         for key in astro_params_run_all.keys():
+            logger.info(f'Saved making lightcone for {key}')
             make_lightcone(key)
     else:
         Parallel(n_jobs=num_cores)(delayed(make_lightcone)(key) for key in astro_params_run_all.keys())
 
 
     t2 = time.time()
-    print(f'---- Finished making lightcones, took {(t2-t1)/3600:.2f} hours ----')
+    logger.info(f'---- Finished making lightcones, took {(t2-t1)/3600:.2f} hours')
