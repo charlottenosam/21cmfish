@@ -235,6 +235,9 @@ else:
                                     write=save_Tb
                                     )
 
+        lightcone_save = lightcone.save(fname=lightcone_filename, direc=output_dir, clobber=True)
+        logger.info(f'Saved lightcone to',lightcone_save)
+
         # Clean up
         if save_Tb:
             clear_kind = ['IonizedBox','TsBox']
@@ -242,10 +245,8 @@ else:
             clear_kind = ['IonizedBox','TsBox','BrightnessTemp']
 
         for kind in clear_kind:
-            p21c.cache_tools.clear_cache(direc=output_dir, kind=kind, show=True)
-
-        lightcone_save = lightcone.save(fname=lightcone_filename, direc=output_dir, clobber=True)
-        logger.info(f'Saved lightcone to',lightcone_save)
+            logger.info(f'Clearing cache')
+            p21c.cache_tools.clear_cache(direc=output_dir, kind=kind)
 
         t2 = time.time()
         logger.info(f'Done with {astro_params_key}, took {(t2-t1)/3600:.2f} hours')
