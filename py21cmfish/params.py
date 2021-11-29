@@ -23,6 +23,7 @@ class Parameter(object):
                 cosmology='CDM',
                 clobber=False,
                 new=False,
+                fid_only=False,
                 vb=True
                 ):
 
@@ -85,6 +86,9 @@ class Parameter(object):
 
         self.lightcones = None
 
+        self.fid_only = fid_only
+        print('fid only',self.fid_only)
+
         # Lightcone node redshifts (for global signal etc)
         self.redshifts      = None
         self.redshifts_file = f'{self.output_dir}redshifts.npy'
@@ -126,6 +130,11 @@ class Parameter(object):
             self.PS = np.load(self.PS_file, allow_pickle=True).item()
             if self.vb: print('    Loaded PS from',self.PS_file)
 
+        self.PS_fid_file = f'{self.output_dir}power_spectrum_fid_21cmsense.npy'
+        if os.path.exists(self.PS_fid_file) and clobber is False:
+            self.PS_fid = np.load(self.PS_fid_file, allow_pickle=True)
+            if self.vb: print(f'    Loaded fiducial PS from {self.PS_fid_file}, shape:{self.PS_fid.shape}')
+
         self.PS_z_HERA = None
         self.PS_z_HERA_file = f'{self.output_dir}PS_z_HERA{self.PS_suffix}.npy'
         if os.path.exists(self.PS_z_HERA_file) and clobber is False:
@@ -158,7 +167,21 @@ class Parameter(object):
 
             self.PS_err_Poisson = np.array(PS_err_Poisson)
 
-        if new:
+        if new and self.fid_only:
+            print('    Fiducial only, get global signal and power spectra from the lightcones')
+
+            # Load lightcones
+            self.get_lightcones()
+
+            # Make global signal and derivatives
+            self.get_global_signal()
+
+            # Make power spectrum, load PS noise and make derivatives
+            self.get_power_spectra()
+
+            self.load_21cmsense(Park19=Park19)
+
+        elif new:
             print('    New parameter, making new global signal and power spectra from the lightcones')
             # Load lightcones
             self.get_lightcones()
@@ -473,7 +496,10 @@ class Parameter(object):
         self.PS_sigma = np.array(PS_sigma)
         # self.PS_fid   = np.array(PS_fid)
 
-        fid_key = sorted(list(self.PS[self.cosmology].keys()))[self.fid_i]
+        if self.fid_only:
+            fid_key = list(self.PS[self.cosmology].keys())[0]
+        else:
+            fid_key = sorted(list(self.PS[self.cosmology].keys()))[self.fid_i]
         print(f'Fiducial: {fid_key}')
         ps_fid_all = self.PS[self.cosmology][fid_key]
         self.PS_fid = np.empty((len(self.PS_z_HERA),len(self.PS_err[0]['k'])))
@@ -481,6 +507,9 @@ class Parameter(object):
             k = ps_fid_all[i]['k']
             PS_interp = np.interp(self.PS_err[i]['k']*0.7, k, ps_fid_all[i]['delta'])
             self.PS_fid[i] = PS_interp
+
+        np.save(self.PS_fid_file, self.PS_fid, allow_pickle=True)
+        if self.vb: print(f'    saved fiducial PS to {self.PS_fid_file}')
 
         return
 
