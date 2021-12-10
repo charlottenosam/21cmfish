@@ -218,7 +218,7 @@ else:
 
         # Lightcone filename
         suffix = f'HIIDIM={HII_DIM}_BOXLEN={BOX_LEN}_fisher_{astro_params_key}'
-        lightcone_filename = f'LightCone_z{min_redshift:.1f}_{suffix}.h5'
+        lightcone_filename = f'LightCone_z{min_redshift:.1f}_{suffix}_r{random_seed}.h5'
         logger.info(f'Will save lightcone to {lightcone_filename}')
 
         t1 = time.time()
@@ -231,12 +231,13 @@ else:
                                     user_params  = user_params,
                                     flag_options = flag_options,
                                     astro_params = astro_params_run_all[astro_params_key],
+                                    random_seed = random_seed,
                                     direc=output_dir,
                                     write=save_Tb
                                     )
 
         lightcone_save = lightcone.save(fname=lightcone_filename, direc=output_dir, clobber=True)
-        logger.info(f'Saved lightcone to',lightcone_save)
+        logger.info(f'Saved lightcone to {lightcone_save}')
 
         # Clean up
         if save_Tb:
