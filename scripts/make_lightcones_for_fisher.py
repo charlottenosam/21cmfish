@@ -241,9 +241,9 @@ else:
 
         # Clean up
         if save_Tb:
-            clear_kind = ['IonizedBox','TsBox']
+            clear_kind = ['IonizedBox','TsBox','PerturbedField']
         else:
-            clear_kind = ['IonizedBox','TsBox','BrightnessTemp']
+            clear_kind = ['IonizedBox','TsBox','BrightnessTemp', 'PerturbedField']
 
         for kind in clear_kind:
             logger.info(f'Clearing cache')
