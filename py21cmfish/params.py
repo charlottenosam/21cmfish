@@ -501,6 +501,8 @@ class Parameter(object):
         else:
             fid_key = sorted(list(self.PS[self.cosmology].keys()))[self.fid_i]
         print(f'Fiducial: {fid_key}')
+
+        # Make fiducial PS in 21cmsense k bins [Mpc^-1]
         ps_fid_all = self.PS[self.cosmology][fid_key]
         self.PS_fid = np.empty((len(self.PS_z_HERA),len(self.PS_err[0]['k'])))
         for i in range(len(self.PS_z_HERA)):

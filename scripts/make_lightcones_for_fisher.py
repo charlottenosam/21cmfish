@@ -241,9 +241,9 @@ else:
 
         # Clean up
         if save_Tb:
-            clear_kind = ['IonizedBox','TsBox','PerturbedField']
+            clear_kind = ['IonizedBox','TsBox']
         else:
-            clear_kind = ['IonizedBox','TsBox','BrightnessTemp', 'PerturbedField']
+            clear_kind = ['IonizedBox','TsBox','BrightnessTemp']
 
         for kind in clear_kind:
             logger.info(f'Clearing cache')
@@ -267,3 +267,8 @@ else:
 
     t2 = time.time()
     logger.info(f'---- Finished making lightcones, took {(t2-t1)/3600:.2f} hours')
+
+    clear_kind = ['IonizedBox','TsBox','BrightnessTemp', 'PerturbedField']
+
+    logger.info(f'Final clearing cache')
+    p21c.cache_tools.clear_cache(direc=output_dir, kind='PerturbedField')
