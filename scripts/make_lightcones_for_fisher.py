@@ -215,13 +215,11 @@ else:
     )
     boxes.read(output_dir)
 
-
     initial_conditions = p21c.initial_conditions(user_params=user_params,
                                                  random_seed=random_seed,
                                                  direc=output_dir)
 
     # Find ICs and perturbed fields
-    IC_files = glob.glob(f'{output_dir}InitialConditions*')
     PerturbedField_files = glob.glob(f'{output_dir}PerturbedField*')
 
     logger.info(f'Made initial conditions')
@@ -238,11 +236,7 @@ else:
         if not os.path.exists(output_dir_lc):
             os.makedirs(output_dir_lc)
 
-        # TODO put ICs in output_dir_lc
-        for IC in IC_files:
-            IC_file = IC.split('/')[-1]
-            os.symlink(IC, f'{output_dir_lc}/{IC_file}')
-
+        # put PerturbedFields in output_dir_lc
         if len(PerturbedField_files) > 0:
             for PF in PerturbedField_files:
                 PF_file = PF.split('/')[-1]
@@ -260,6 +254,7 @@ else:
                                     max_redshift = max_redshift,
                                     lightcone_quantities=lightcone_quantities,
                                     global_quantities=global_quantities,
+                                    init_box = initial_conditions,
                                     user_params  = user_params,
                                     flag_options = flag_options,
                                     astro_params = astro_params_run_all[astro_params_key],
