@@ -137,7 +137,7 @@ logger.info(f'Box HII_DIM={HII_DIM}, BOX_LEN={BOX_LEN}')
 if save_Tb:
     clear_kind = ['IonizedBox','TsBox']
 else:
-    clear_kind = ['IonizedBox','TsBox','BrightnessTemp']
+    clear_kind = ['IonizedBox','TsBox','BrightnessTemp', 'PerturbedField']
 
 # ==================================
 # Make dictionary of sets of parameters for each run
@@ -214,6 +214,10 @@ else:
                                                  direc=output_dir)
     logger.info(f'Made initial conditions')
 
+    # Find ICs and perturbed fields
+    IC_files = glob.glob(f'{output_dir}InitialConditions*')
+    PerturbedField_files = glob.glob(f'{output_dir}PerturbedField*')
+
     # ==================================
     # Run each filter
 
@@ -221,6 +225,20 @@ else:
         """
         Make lightcone for a given set of astroparams
         """
+
+        output_dir_lc = f'{output_dir}_{astro_params_key}'
+        if not os.path.exists(output_dir_lc):
+            os.makedirs(output_dir_lc)
+
+        # TODO put ICs in output_dir_lc
+        for IC in IC_files:
+            IC_file = IC.split('/')[-1]
+            os.symlink(IC, f'{output_dir_lc}/{IC_file}')
+
+        if len(PerturbedField_files) > 0:
+            for PF in PerturbedField_files:
+                PF_file = PF.split('/')[-1]
+                os.symlink(PF, f'{output_dir_lc}/{PF_file}')
 
         # Lightcone filename
         suffix = f'HIIDIM={HII_DIM}_BOXLEN={BOX_LEN}_fisher_{astro_params_key}'
@@ -238,18 +256,18 @@ else:
                                     flag_options = flag_options,
                                     astro_params = astro_params_run_all[astro_params_key],
                                     random_seed = random_seed,
-                                    direc=output_dir,
+                                    direc=output_dir_lc,
                                     write=save_Tb
                                     )
 
+        # save in main dir
         lightcone_save = lightcone.save(fname=lightcone_filename, direc=output_dir, clobber=True)
         logger.info(f'Saved lightcone to {lightcone_save}')
 
         # Clean up if running in series
-        if num_cores == 1:
-            for kind in clear_kind:
-                logger.info(f'Clearing cache')
-                p21c.cache_tools.clear_cache(direc=output_dir, kind=kind)
+        for kind in clear_kind:
+            logger.info(f'Clearing cache')
+            p21c.cache_tools.clear_cache(direc=output_dir_lc, kind=kind)
 
         t2 = time.time()
         logger.info(f'Done with {astro_params_key}, took {(t2-t1)/3600:.2f} hours')
@@ -266,12 +284,5 @@ else:
     else:
         Parallel(n_jobs=num_cores)(delayed(make_lightcone)(key) for key in astro_params_run_all.keys())
 
-        for kind in clear_kind:
-            logger.info(f'Clearing cache')
-            p21c.cache_tools.clear_cache(direc=output_dir, kind=kind)
-
     t2 = time.time()
     logger.info(f'---- Finished making lightcones, took {(t2-t1)/3600:.2f} hours')
-
-    logger.info(f'Final clearing cache')
-    p21c.cache_tools.clear_cache(direc=output_dir, kind='PerturbedField')
