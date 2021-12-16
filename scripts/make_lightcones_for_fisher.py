@@ -212,11 +212,12 @@ else:
     initial_conditions = p21c.initial_conditions(user_params=user_params,
                                                  random_seed=random_seed,
                                                  direc=output_dir)
-    logger.info(f'Made initial conditions')
 
     # Find ICs and perturbed fields
     IC_files = glob.glob(f'{output_dir}InitialConditions*')
     PerturbedField_files = glob.glob(f'{output_dir}PerturbedField*')
+
+    logger.info(f'Made initial conditions')
 
     # ==================================
     # Run each filter
