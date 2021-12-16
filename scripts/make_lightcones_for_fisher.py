@@ -210,6 +210,9 @@ else:
     # Initial Conditions
     logger.info(f'Making initial conditions')
 
+    user_params = p21c.UserParams(user_params)
+    cosmo_params = p21c.CosmoParams(cosmo_params)
+
     boxes = p21c.InitialConditions(
         user_params=user_params, random_seed=random_seed
     )
