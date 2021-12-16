@@ -210,21 +210,14 @@ else:
     # Initial Conditions
     logger.info(f'Making initial conditions')
 
-    user_params = p21c.UserParams(user_params)
-
-    boxes = p21c.InitialConditions(
-        user_params=user_params, random_seed=random_seed
-    )
-    boxes.read(output_dir)
-
     initial_conditions = p21c.initial_conditions(user_params=user_params,
                                                  random_seed=random_seed,
                                                  direc=output_dir)
 
     # Find ICs and perturbed fields
-    PerturbedField_files = glob.glob(f'{output_dir}PerturbedField*')
+    # PerturbedField_files = glob.glob(f'{output_dir}PerturbedField*')
 
-    logger.info(f'Made initial conditions')
+    logger.info(f'Loaded or made initial conditions')
 
     # ==================================
     # Run each filter
@@ -239,10 +232,10 @@ else:
             os.makedirs(output_dir_lc)
 
         # put PerturbedFields in output_dir_lc
-        if len(PerturbedField_files) > 0:
-            for PF in PerturbedField_files:
-                PF_file = PF.split('/')[-1]
-                os.symlink(PF, f'{output_dir_lc}/{PF_file}')
+        # if len(PerturbedField_files) > 0:
+        #     for PF in PerturbedField_files:
+        #         PF_file = PF.split('/')[-1]
+        #         os.symlink(PF, f'{output_dir_lc}/{PF_file}')
 
         # Lightcone filename
         suffix = f'HIIDIM={HII_DIM}_BOXLEN={BOX_LEN}_fisher_{astro_params_key}'
