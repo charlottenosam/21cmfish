@@ -20,6 +20,7 @@ class Parameter(object):
                 output_dir=base_path+'examples/data/',
                 PS_err_dir=base_path+'examples/data/21cmSense_noise/21cmSense_fid_EOS21/',
                 Park19=None,
+                k_HERA=True,
                 cosmology='CDM',
                 clobber=False,
                 new=False,
@@ -45,6 +46,9 @@ class Parameter(object):
             https://ui.adsabs.harvard.edu/abs/2019MNRAS.484..933P/abstract
             'approx' = use our approximation of Park19 noise bins
             'real' = use noise from Jaehong
+
+        k_HERA : bool
+            If True (default), use HERA k bins for PS
 
         cosmology : str
             Label for cosmology, will be dict key for PS etc
@@ -159,11 +163,15 @@ class Parameter(object):
             for i in range(len(self.PS_z_HERA)):
                 PS_err_Poisson_sim = np.array(self.PS[keys[0]][f'{param}={self.theta_params[keys[0]][self.fid_i]}'][i]['err_delta'])
 
-                # interpolate onto 21cmsense k values
-                k_sim = self.PS[keys[0]][f'{param}={self.theta_params[keys[0]][self.fid_i]}'][i]['k']
-                k_err = self.PS_err[i]['k']*0.7 # h Mpc^-1 --> Mpc^-1
+                if k_HERA is False:
+                    # interpolate onto 21cmsense k values
+                    k_sim = self.PS[keys[0]][f'{param}={self.theta_params[keys[0]][self.fid_i]}'][i]['k']
+                    k_err = self.PS_err[i]['k']*0.7 # h Mpc^-1 --> Mpc^-1
 
-                PS_err_Poisson.append(np.interp(k_err, k_sim, PS_err_Poisson_sim))
+                    PS_err_Poisson.append(np.interp(k_err, k_sim, PS_err_Poisson_sim))
+
+                else:
+                    PS_err_Poisson.append(PS_err_Poisson_sim)
 
             self.PS_err_Poisson = np.array(PS_err_Poisson)
 
@@ -177,7 +185,7 @@ class Parameter(object):
             self.get_global_signal()
 
             # Make power spectrum, load PS noise and make derivatives
-            self.get_power_spectra()
+            self.get_power_spectra(k_HERA=k_HERA)
 
             self.load_21cmsense(Park19=Park19)
 
@@ -191,7 +199,7 @@ class Parameter(object):
             self.derivative_global_signal()
 
             # Make power spectrum, load PS noise and make derivatives
-            self.get_power_spectra()
+            self.get_power_spectra(k_HERA=k_HERA)
             self.load_21cmsense(Park19=Park19)
             self.derivative_power_spectrum()
 
@@ -340,7 +348,7 @@ class Parameter(object):
         return
 
 
-    def get_power_spectra(self, n_psbins=50, k_min=None, k_max=None, save=True):
+    def get_power_spectra(self, n_psbins=50, k_min=None, k_max=None, k_HERA=False, save=True):
         """
         Make 21cm power spectra from redshift chunk list (bin edges)
 
@@ -369,11 +377,16 @@ class Parameter(object):
                                 7.35294, 6.97753, 6.63441, 6.31959, 6.0297, 5.7619, 5.51376, 5.28319,
                                 5.06838]#, 4.86777, 4.68]
 
+        if k_HERA:
+            if self.vb: print(f'    using HERA k bins')
+            k_min, k_max = 0.035, 2.55116693
+            n_psbins = 46
+
         if self.lightcones is None:
             self.get_lightcones()
         chunk_indices_HERA = [np.argmin(np.abs(self.lc_redshifts - z_HERA)) for z_HERA in chunk_z_list_HERA][::-1]
 
-        if self.vb: print(f'    Making powerspectra in {len(chunk_z_list_HERA)} chunks')
+        if self.vb: print(f'    Making powerspectra in {len(chunk_z_list_HERA)} redshift chunks')
 
         self.PS = {}
         use_ETHOS = self.lightcones[0].flag_options.pystruct['USE_ETHOS']

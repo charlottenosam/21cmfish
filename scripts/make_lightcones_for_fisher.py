@@ -133,6 +133,12 @@ BOX_LEN = user_params["BOX_LEN"]
 logger.info(f'Making lightcone from z={min_redshift}-{max_redshift}')
 logger.info(f'Box HII_DIM={HII_DIM}, BOX_LEN={BOX_LEN}')
 
+# Clean up types
+if save_Tb:
+    clear_kind = ['IonizedBox','TsBox']
+else:
+    clear_kind = ['IonizedBox','TsBox','BrightnessTemp']
+
 # ==================================
 # Make dictionary of sets of parameters for each run
 astro_params_run_all = {}
@@ -239,15 +245,11 @@ else:
         lightcone_save = lightcone.save(fname=lightcone_filename, direc=output_dir, clobber=True)
         logger.info(f'Saved lightcone to {lightcone_save}')
 
-        # Clean up
-        if save_Tb:
-            clear_kind = ['IonizedBox','TsBox']
-        else:
-            clear_kind = ['IonizedBox','TsBox','BrightnessTemp']
-
-        for kind in clear_kind:
-            logger.info(f'Clearing cache')
-            p21c.cache_tools.clear_cache(direc=output_dir, kind=kind)
+        # Clean up if running in series
+        if num_cores == 1:
+            for kind in clear_kind:
+                logger.info(f'Clearing cache')
+                p21c.cache_tools.clear_cache(direc=output_dir, kind=kind)
 
         t2 = time.time()
         logger.info(f'Done with {astro_params_key}, took {(t2-t1)/3600:.2f} hours')
@@ -264,11 +266,12 @@ else:
     else:
         Parallel(n_jobs=num_cores)(delayed(make_lightcone)(key) for key in astro_params_run_all.keys())
 
+        for kind in clear_kind:
+            logger.info(f'Clearing cache')
+            p21c.cache_tools.clear_cache(direc=output_dir, kind=kind)
 
     t2 = time.time()
     logger.info(f'---- Finished making lightcones, took {(t2-t1)/3600:.2f} hours')
-
-    clear_kind = ['IonizedBox','TsBox','BrightnessTemp', 'PerturbedField']
 
     logger.info(f'Final clearing cache')
     p21c.cache_tools.clear_cache(direc=output_dir, kind='PerturbedField')
