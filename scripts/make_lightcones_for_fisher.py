@@ -211,7 +211,7 @@ else:
     logger.info(f'Making initial conditions')
 
     boxes = p21c.InitialConditions(
-        user_params=user_params, cosmo_params=cosmo_params, random_seed=random_seed
+        user_params=user_params, random_seed=random_seed
     )
     boxes.read(output_dir)
 
