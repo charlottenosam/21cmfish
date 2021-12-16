@@ -215,7 +215,8 @@ else:
                                                  direc=output_dir)
 
     # Find ICs and perturbed fields
-    # PerturbedField_files = glob.glob(f'{output_dir}PerturbedField*')
+    PerturbedField_files = glob.glob(f'{output_dir}PerturbedField*')
+    IC_files = glob.glob(f'{output_dir}InitialConditions*')
 
     logger.info(f'Loaded or made initial conditions')
 
@@ -232,10 +233,14 @@ else:
             os.makedirs(output_dir_lc)
 
         # put PerturbedFields in output_dir_lc
-        # if len(PerturbedField_files) > 0:
-        #     for PF in PerturbedField_files:
-        #         PF_file = PF.split('/')[-1]
-        #         os.symlink(PF, f'{output_dir_lc}/{PF_file}')
+        if len(PerturbedField_files) > 0:
+            for PF in PerturbedField_files:
+                PF_file = PF.split('/')[-1]
+                os.symlink(PF, f'{output_dir_lc}/{PF_file}')
+
+        for IC in IC_files:
+            IC_file = IC.split('/')[-1]
+            os.symlink(IC, f'{output_dir_lc}/{IC_file}')
 
         # Lightcone filename
         suffix = f'HIIDIM={HII_DIM}_BOXLEN={BOX_LEN}_fisher_{astro_params_key}'
@@ -249,7 +254,7 @@ else:
                                     max_redshift = max_redshift,
                                     lightcone_quantities=lightcone_quantities,
                                     global_quantities=global_quantities,
-                                    init_box = initial_conditions,
+                                    # init_box = initial_conditions,
                                     user_params  = user_params,
                                     flag_options = flag_options,
                                     astro_params = astro_params_run_all[astro_params_key],
