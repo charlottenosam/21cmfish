@@ -1,5 +1,5 @@
 import py21cmfast as p21c
-import os
+import os, glob
 import numpy as np
 import time
 import itertools as it
@@ -209,6 +209,13 @@ else:
     # ==================================
     # Initial Conditions
     logger.info(f'Making initial conditions')
+
+    boxes = p21c.InitialConditions(
+        user_params=user_params, cosmo_params=cosmo_params, random_seed=random_seed
+    )
+    boxes.read(output_dir)
+
+
     initial_conditions = p21c.initial_conditions(user_params=user_params,
                                                  random_seed=random_seed,
                                                  direc=output_dir)
