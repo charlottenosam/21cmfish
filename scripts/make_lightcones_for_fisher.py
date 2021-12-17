@@ -236,11 +236,15 @@ else:
         if len(PerturbedField_files) > 0:
             for PF in PerturbedField_files:
                 PF_file = PF.split('/')[-1]
-                os.symlink(PF, f'{output_dir_lc}/{PF_file}')
+                linked_file = f'{output_dir_lc}/{PF_file}'
+                if not os.path.exists(linked_file):
+                    os.symlink(PF, linked_file)
 
         for IC in IC_files:
             IC_file = IC.split('/')[-1]
-            os.symlink(IC, f'{output_dir_lc}/{IC_file}')
+            linked_file = f'{output_dir_lc}/{IC_file}'
+            if not os.path.exists(linked_file):
+                os.symlink(IC, linked_file)
 
         # Lightcone filename
         suffix = f'HIIDIM={HII_DIM}_BOXLEN={BOX_LEN}_fisher_{astro_params_key}'
