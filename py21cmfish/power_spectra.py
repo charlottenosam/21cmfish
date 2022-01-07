@@ -164,6 +164,7 @@ def powerspectra_chunks(lightcone, nchunks=10,
                         ignore_kperp_zero=True,
                         ignore_kpar_zero=False,
                         ignore_k_zero=False,
+                        remove_nans=True,
                         vb=False):
 
     """
@@ -219,7 +220,10 @@ def powerspectra_chunks(lightcone, nchunks=10,
                     ignore_kpar_zero=ignore_kpar_zero,
                     ignore_k_zero=ignore_k_zero,)
 
-            power, k, variance = power[~np.isnan(power)], k[~np.isnan(power)], variance[~np.isnan(power)]
+            if remove_nans:
+                power, k, variance = power[~np.isnan(power)], k[~np.isnan(power)], variance[~np.isnan(power)]
+            else:
+                variance[np.isnan(power)] = np.inf
 
             data.append({"k": k, "delta": power * k ** 3 / (2 * np.pi ** 2), "err_delta": np.sqrt(variance) * k ** 3 / (2 * np.pi ** 2)})
 

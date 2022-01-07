@@ -130,7 +130,7 @@ def Fij(dObs_dtheta_i, dObs_dtheta_j,
         F_ij fisher matrix element : float
     """
     sigma_sq = sigma_obs**2. + sigma_mod**2. + sigma_poisson**2.
-    return np.sum(dObs_dtheta_i * dObs_dtheta_j/sigma_sq, axis=axis)
+    return np.nansum(dObs_dtheta_i * dObs_dtheta_j/sigma_sq, axis=axis)
 
 
 def fisher_correlations(Fij_matrix, fisher_params, plot=True):
@@ -312,7 +312,7 @@ def plot_ellipse(ax, par1, par2, parameters, fiducial, cov,
 def title_double_ellipses(axes, labels,
                            chain=None,
                            med=None, sigma=None,
-                           title_fontsize=18, title_pad=55,
+                           title_fontsize=18, title_pad=58,
                            vspace=0.,
                            color='k'
                            ):

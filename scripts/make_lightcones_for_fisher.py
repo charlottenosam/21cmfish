@@ -271,10 +271,11 @@ else:
         lightcone_save = lightcone.save(fname=lightcone_filename, direc=output_dir, clobber=True)
         logger.info(f'Saved lightcone to {lightcone_save}')
 
-        # Clean up if running in series
+        # Clean up
         for kind in clear_kind:
             logger.info(f'Clearing cache')
             p21c.cache_tools.clear_cache(direc=output_dir_lc, kind=kind)
+        os.system(f"rm -rf {output_dir_lc}")
 
         t2 = time.time()
         logger.info(f'Done with {astro_params_key}, took {(t2-t1)/3600:.2f} hours')
