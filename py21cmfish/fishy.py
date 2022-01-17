@@ -53,7 +53,7 @@ def make_diff_array(params_dict, PS_altered, fisher_params, hpeak=0.0, obs='GS',
     Di_vector = np.zeros(len(fisher_params))
 
     if obs == 'PS':
-        diff_obs_gen = params_dict[fisher_params[0]].PS_fid - PS_altered
+        diff_obs_gen = PS_altered - params_dict[fisher_params[0]].PS_fid
     else:
         #TODO: add the same functionality for the GS
         diff_obs_gen = 0.0*params_dict[p1].deriv_GS[cosmo_key]
