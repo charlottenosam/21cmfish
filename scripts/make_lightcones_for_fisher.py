@@ -228,6 +228,7 @@ else:
         Make lightcone for a given set of astroparams
         """
 
+        # Save output for each parameter to a new directory
         output_dir_lc = f'{output_dir}_{astro_params_key}'
         if not os.path.exists(output_dir_lc):
             os.makedirs(output_dir_lc)
