@@ -40,6 +40,7 @@ parser.add_argument("--random_seed", type=int, help="Random seed [default = 1234
 # ---- flags ------
 parser.add_argument("--save_Tb", action='store_true', help="Save BrightnessTemp boxes [default = False]")
 parser.add_argument("--fix_astro_params", action='store_true', help="Fix astro params (only vary k_peak, h_peak for ETHOS runs) [default = False]")
+parser.add_argument("--test_linear", action='store_true', help="Test linearity of PS derivatives by creating lightcones on a wider grid of parameters [default = False]")
 parser.add_argument("--dry_run", action='store_true', help="Just print the parameters, don't run anything [default = False]")
 
 args = parser.parse_args()
@@ -75,6 +76,12 @@ save_Tb = False
 if args.save_Tb:
     save_Tb = True
     logger.info(f'Saving BrightnessTemp coeval boxes')
+
+vary_array = np.array([-1,1])
+if args.test_linear:
+    vary_array = np.arange(-10,11)
+    vary_array = np.delete(vary_array,np.where(vary_array==0))
+    logger.info(f'Testing linearity of derivatives on a larger grid +/-{q_scale*np.max(vary_array)}% of fiducial')
 
 fix_astro_params = False
 if args.fix_astro_params:
@@ -156,9 +163,9 @@ for param in astro_params_vary:
 
     # Make smaller for L_X
     if param == 'L_X':
-        q = 0.001*np.array([-1,1])
+        q = 0.001*vary_array
     else:
-        q = q_scale/100*np.array([-1,1])
+        q = q_scale/100*vary_array
 
     if p_fid == 0.:
         p = q
