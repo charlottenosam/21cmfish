@@ -21,8 +21,15 @@ logger.setLevel(logging.INFO)
 # TODO =====
 # Took ---- Finished making lightcones, took 15.86 hours ---- for ETHOS.
 # Took 11 mins to make PS
+# ==============================================================================
+# ==============================================================================
+#
+# Script to create set of 21cmFAST simulations for Fisher matrix analysis.
+#   Loads a configuration file of default parameters, and parameters to vary
 #
 # ==============================================================================
+# ==============================================================================
+#
 # Import config files
 config = configparser.ConfigParser(delimiters=':')
 config.optionxform = str
@@ -62,16 +69,17 @@ if args.q_scale:
     q_scale  = args.q_scale
 logger.info(f'Calculating derivatives at {q_scale} percent from fiducial')
 
-if args.h_PEAK:
+if args.h_PEAK is not None:
     h_PEAK  = args.h_PEAK
     fix_h_PEAK = True
     h_peaks = [h_PEAK]
-    logger.info(f'Running with h_peak = {h_PEAK}')
+    logger.info(f'Running with fixed h_peak = {h_PEAK}')
 else:
     fix_h_PEAK = False
-    h_PEAK = 1.
+    h_PEAK = 0. # default
     h_peaks = np.arange(0., 1.1, 0.1)
     logger.info(f'Running with varied h_peak [if USE_ETHOS = True]')
+logger.info(f'Will make lightcones for h_peak={h_peaks}')
 
 save_Tb = False
 if args.save_Tb:
@@ -158,7 +166,7 @@ astro_params_run_all = {}
 
 # Set up parameters for fisher runs
 if flag_options['USE_ETHOS'] is True:
-    dict_prefix = 'h_PEAK_{h_PEAK:.1f}_'
+    dict_prefix = f'h_PEAK_{h_PEAK:.1f}_'
 else:
     dict_prefix = ''
 
@@ -194,14 +202,15 @@ if flag_options['USE_ETHOS'] is True:
     # inv_k_peak = np.array([1e-8, 1e-6, 1e-4])
     # inv_k_peak = np.array([1e-8, 1e-6, 0.002, 0.003])
     # inv_k_peak = np.array([1e-5, 5e-5, 1e-4, 5e-4, 1e-3])
-    inv_k_peak = np.array([1e-5, 5e-5, 5e-4])
+    inv_k_peak = np.array([1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 5e-5, 5e-4, 1e-3]) # test for convergence
+#    inv_k_peak = np.array([1e-5, 5e-5, 5e-4]) # this was default for h_peak = 0?
     for h_peak in h_peaks:
         for inv_k in inv_k_peak:
             log_k_peak = np.log10(1/inv_k)
             astro_params_run = astro_params_fid.copy()
             astro_params_run['log10_k_PEAK'] = log_k_peak
             astro_params_run['h_PEAK'] = h_peak
-            astro_params_run_all[f'h_PEAK_{h_PEAK:.1f}_inv_k_PEAK_{inv_k}'] = astro_params_run.copy()
+            astro_params_run_all[f'h_PEAK_{h_peak:.1f}_inv_k_PEAK_{inv_k}'] = astro_params_run.copy()
 
 logger.info(f'Going to make {len(astro_params_run_all)} lightcones')
 

@@ -345,7 +345,11 @@ class Parameter(object):
                 labels = ['one-sided -','two-sided','one-sided +']
                 if plot:
                     for dd,d in enumerate(deriv):
-                        ax.plot(self.redshifts, d, lw=1, ls=ls, label=labels[dd])
+                        if len(deriv) <= 3:
+                            ax.plot(self.redshifts, d, lw=1, ls=ls, label=labels[dd])
+                        else:
+                            ax.plot(self.redshifts, d, lw=1, ls=ls)
+
 
         if plot:
             ax.legend()
