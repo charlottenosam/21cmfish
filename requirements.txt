@@ -2,5 +2,5 @@
 matplotlib
 numpy
 joblib
-21cmFAST >= 3.0.0dev6
+#21cmFAST >= 3.0.0dev6
 powerbox
