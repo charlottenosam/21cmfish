@@ -8,4 +8,3 @@ to create a Fisher matrix from 21cmFAST lightcones:
    :maxdepth: 2
 
    tutorials/fisher_examples
-
