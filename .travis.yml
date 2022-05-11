@@ -1,6 +1,6 @@
 language: python
 python:
-  - 3.9
+  - 3.7
 cache:
   directories:
     - $HOME/.cache/pip
@@ -15,6 +15,7 @@ install:
   # The versions of pip and numpy that come pre-installed are often too old and
   # can cause problems. Upgrade them.
   - pip install --upgrade pip numpy
+  - pip install -U importlib_metadata
   # Install this package and the packages listed in requirements.txt.
   - pip install .
   # Install extra requirements for running tests and building docs.
