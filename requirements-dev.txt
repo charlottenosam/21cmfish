@@ -7,14 +7,14 @@ pytest
 sphinx
 twine
 # 21cmfast
-#gsl
+gsl
 #fftw
 #click
 #pyyaml
 #cffi
 #astropy
 #h5py
-#21cmFAST >= 3.0.0dev6
+21cmFAST >= 3.0.0dev6
 # These are dependencies of various sphinx extensions for documentation.
 ipython
 matplotlib
