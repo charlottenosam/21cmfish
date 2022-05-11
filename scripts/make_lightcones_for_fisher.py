@@ -1,8 +1,8 @@
 import py21cmfast as p21c
-import os, glob
+import os
+import glob
 import numpy as np
 import time
-import itertools as it
 from joblib import Parallel, delayed
 import argparse
 import configparser
@@ -10,11 +10,11 @@ import multiprocessing
 
 import py21cmfish as p21fish
 
-print(f"21cmFAST version is {p21c.__version__}")
-
 import logging
 logger = logging.getLogger("21cmFAST")
 logger.setLevel(logging.INFO)
+
+print(f"21cmFAST version is {p21c.__version__}")
 
 # ==============================================================================
 # python make_lightcones_for_fisher.py ../21cmFAST_config_files/Park19.config --dry_run

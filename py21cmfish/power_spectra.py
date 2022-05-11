@@ -1,6 +1,4 @@
 # define functions to calculate PS, following py21cmmc
-import py21cmfast as p21c
-import os, sys
 import numpy as np
 from powerbox.tools import get_power
 

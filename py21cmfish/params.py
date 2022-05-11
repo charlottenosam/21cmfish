@@ -1,10 +1,9 @@
 import py21cmfast as p21c
-import os, sys
+import os
 import numpy as np
 import glob
 import scipy.optimize
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from .power_spectra import *
@@ -26,8 +25,7 @@ class Parameter(object):
                 clobber=False,
                 new=False,
                 fid_only=False,
-                vb=True
-                ):
+                vb=True):
 
         """
 

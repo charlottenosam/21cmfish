@@ -52,7 +52,7 @@ def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
 
         if i == 0 and obs == 'PS':
             k_where = np.arange(len(params_dict[p1].PS_err[0]['k']))
-            if k_min is not None and k_max is not None: # k range in 1/Mpc
+            if k_min is not None and k_max is not None:  # k range in 1/Mpc
                 k_where  = np.where((params_dict[p1].PS_err[0]['k'] <= k_max) & (params_dict[p1].PS_err[0]['k'] >= k_min))[0]
 
             z_where = np.arange(len(params_dict[p1].PS_z_HERA))
@@ -77,7 +77,7 @@ def make_fisher_matrix(params_dict, fisher_params, hpeak=0.0, obs='GS',
 
         for j,p2 in enumerate(fisher_params):
             if obs == 'GS':
-                if i==0 and j==0:
+                if i == 0 and j == 0:
                     print('GS shape:',params_dict[p1].deriv_GS[cosmo_key].shape)
 
                 Fij_matrix[i,j] = Fij(params_dict[p1].deriv_GS[cosmo_key],
@@ -160,14 +160,13 @@ def fisher_correlations(Fij_matrix, fisher_params, plot=True):
 
     if plot:
         mask = np.triu(np.ones_like(R_ij_fisher, dtype=bool))
+        import seaborn as sns
         sns.heatmap(R_ij_fisher, mask=mask,
                     cmap='RdBu',
                     xticklabels=fisher_params,yticklabels=fisher_params,
                     square=True, linewidths=.5, cbar_kws={"shrink": 1, 'label':'Correlation $r_{ij}$'})
 
     return R_ij_fisher
-
-
 
 
 # TODO generalize

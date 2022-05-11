@@ -11,9 +11,17 @@ exclude =
     docs/source/conf.py
 max-line-length = 300
 ignore =
+  E126,
+  E127,
+  E128,
+  E251,
 	E221,
+  E261,
+  E226,
+  E231,
+  F405,
+  F541,
 	E701,
 	E731,
-	E226,
 	E722,
-	E127
+  F403

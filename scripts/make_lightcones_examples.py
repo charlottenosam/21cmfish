@@ -1,8 +1,8 @@
 import py21cmfast as p21c
-import os, glob
+import os
+import glob
 import numpy as np
 import time
-import itertools as it
 from joblib import Parallel, delayed
 import argparse
 import configparser
@@ -53,13 +53,13 @@ logger.info(f'Running with {config.get("run","name")}...')
 
 # Fidicual parameters
 user_params = dict(config.items('user_params'))
-user_params = {key:p21fish.read_config_params(user_params[key]) for key in user_params}
+user_params = {key: p21fish.read_config_params(user_params[key]) for key in user_params}
 
 flag_options = dict(config.items('flag_options'))
-flag_options = {key:p21fish.read_config_params(flag_options[key]) for key in flag_options}
+flag_options = {key: p21fish.read_config_params(flag_options[key]) for key in flag_options}
 
 astro_params_fid = dict(config.items('astro_params'))
-astro_params_fid = {key:float(astro_params_fid[key]) for key in astro_params_fid}
+astro_params_fid = {key: float(astro_params_fid[key]) for key in astro_params_fid}
 
 astro_params_vary = config.get('vary','astro_params_vary').split('\n')
 astro_params_vary = list(filter(None, astro_params_vary))
@@ -230,7 +230,6 @@ else:
             logger.info(f'Saved lightcone to {lightcone_save}')
         else:
             logger.info(f'{lightcone_filename} already exists, skipping...')
-
 
         # Clean up
         for kind in clear_kind:
