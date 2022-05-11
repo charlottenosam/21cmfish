@@ -6,7 +6,7 @@ flake8
 pytest
 sphinx
 twine
-#21cmFAST >= 3.0.0dev6
+21cmFAST >= 3.0.0dev6
 # These are dependencies of various sphinx extensions for documentation.
 ipython
 matplotlib
