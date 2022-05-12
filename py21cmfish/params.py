@@ -215,7 +215,11 @@ class Parameter(object):
                 if self.vb: print('    Loaded PS derivatives from',self.PS_file.replace('dict','deriv_dict'),'shape=',self.deriv_PS[keys[0]].shape)
 
         # Get fiducial Poisson noise
-        self.load_Poisson_noise()
+        try:
+            self.load_Poisson_noise()
+        except:
+            print('Could not load Poisson noise, setting = None')
+            self.PS_err_Poisson = None
 
         return
 
@@ -356,7 +360,7 @@ class Parameter(object):
             ax.set_title(self.param_label)
 
             fig.tight_layout()
-            fig.savefig(self.output_dir+f'GS_deriv_{self.param}.png', bbox_inches='tight')
+            fig.savefig(self.output_dir+f'GS_deriv_{cosmo_key}_{self.param}.png', bbox_inches='tight')
 
         if save:
             GS_deriv_file = self.T_file.replace('dict','deriv_dict')
