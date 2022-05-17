@@ -85,6 +85,7 @@ save_Tb = False
 if args.save_Tb:
     save_Tb = True
     logger.info(f'Saving BrightnessTemp coeval boxes')
+p21c.config['write'] = save_Tb
 
 vary_array = np.array([-1,1])
 if args.test_linear:
