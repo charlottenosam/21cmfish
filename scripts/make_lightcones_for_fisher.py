@@ -85,7 +85,7 @@ save_Tb = False
 if args.save_Tb:
     save_Tb = True
     logger.info(f'Saving BrightnessTemp coeval boxes')
-p21c.config['write'] = save_Tb
+p21c.config['write'] = False
 
 vary_array = np.array([-1,1])
 if args.test_linear:
@@ -289,7 +289,7 @@ else:
                                         flag_options = flag_options,
                                         astro_params = astro_params_run_all[astro_params_key],
                                         random_seed = random_seed,
-                                        direc=output_dir_lc,
+                                        # direc=output_dir_lc,
                                         write=save_Tb
                                         )
 
