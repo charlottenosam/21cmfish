@@ -253,23 +253,27 @@ else:
         """
 
         # Save output for each parameter to a new directory
-        output_dir_lc = f'{output_dir}_{astro_params_key}'
-        if not os.path.exists(output_dir_lc):
-            os.makedirs(output_dir_lc)
+        if save_Tb:
+            output_dir_lc = f'{output_dir}_{astro_params_key}'
+            if not os.path.exists(output_dir_lc):
+                os.makedirs(output_dir_lc)
 
-        # put PerturbedFields in output_dir_lc
-        if len(PerturbedField_files) > 0:
-            for PF in PerturbedField_files:
-                PF_file = PF.split('/')[-1]
-                linked_file = f'{output_dir_lc}/{PF_file}'
+            # put PerturbedFields in output_dir_lc
+            if len(PerturbedField_files) > 0:
+                for PF in PerturbedField_files:
+                    PF_file = PF.split('/')[-1]
+                    linked_file = f'{output_dir_lc}/{PF_file}'
+                    if not os.path.exists(linked_file):
+                        os.symlink(PF, linked_file)
+
+            for IC in IC_files:
+                IC_file = IC.split('/')[-1]
+                linked_file = f'{output_dir_lc}/{IC_file}'
                 if not os.path.exists(linked_file):
-                    os.symlink(PF, linked_file)
-
-        for IC in IC_files:
-            IC_file = IC.split('/')[-1]
-            linked_file = f'{output_dir_lc}/{IC_file}'
-            if not os.path.exists(linked_file):
-                os.symlink(IC, linked_file)
+                    os.symlink(IC, linked_file)
+            direc = output_dir_lc
+        else:
+            direc = None
 
         # Lightcone filename
         suffix = f'HIIDIM={HII_DIM}_BOXLEN={BOX_LEN}_fisher_{astro_params_key}'
@@ -289,7 +293,7 @@ else:
                                         flag_options = flag_options,
                                         astro_params = astro_params_run_all[astro_params_key],
                                         random_seed = random_seed,
-                                        # direc=output_dir_lc,
+                                        direc=direc,
                                         write=save_Tb
                                         )
 
