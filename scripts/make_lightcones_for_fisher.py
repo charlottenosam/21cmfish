@@ -85,7 +85,6 @@ save_Tb = False
 if args.save_Tb:
     save_Tb = True
     logger.info(f'Saving BrightnessTemp coeval boxes')
-p21c.config['write'] = False
 
 vary_array = np.array([-1,1])
 if args.test_linear:
@@ -245,6 +244,9 @@ else:
 
     logger.info(f'Loaded or made initial conditions')
 
+    # Will not write more boxes
+    p21c.config['write'] = False
+    
     # ==================================
     # Run each filter
 
