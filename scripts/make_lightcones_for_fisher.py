@@ -119,6 +119,7 @@ output_dir = config.get('run','output_dir')
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 logger.info(f'Loading from cache at {output_dir}')
+p21c.config['direc'] = output_dir
 
 # --------------------------------------
 lightcone_quantities = ("brightness_temp", 'density')
