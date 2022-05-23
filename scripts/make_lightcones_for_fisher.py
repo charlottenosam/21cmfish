@@ -294,7 +294,7 @@ else:
                                         flag_options = flag_options,
                                         astro_params = astro_params_run_all[astro_params_key],
                                         random_seed = random_seed,
-                                        direc=direc,
+                                        # direc=direc,
                                         write=save_Tb
                                         )
 
