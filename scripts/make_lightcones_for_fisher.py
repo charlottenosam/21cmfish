@@ -234,6 +234,7 @@ else:
     # Initial Conditions
     logger.info(f'Making initial conditions')
 
+    print(user_params)
     initial_conditions = p21c.initial_conditions(user_params=user_params,
                                                  random_seed=random_seed,
                                                  direc=output_dir)
@@ -246,7 +247,8 @@ else:
 
     # Will not write more boxes
     p21c.config['write'] = False
-    
+    print(initial_conditions.user_params)
+
     # ==================================
     # Run each filter
 
