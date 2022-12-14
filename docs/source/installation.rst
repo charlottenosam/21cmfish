@@ -12,6 +12,10 @@ Both ``21cmFAST`` and ``21cmfish`` must be installed in the same environment.
 
 Installation
 ------------
+Via pip:
+
+    $ pip install py21cmfish
+
 At the command line::
 
     $ git clone git@github.com:charlottenosam/21cmfish.git
