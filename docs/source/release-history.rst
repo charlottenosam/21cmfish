@@ -2,5 +2,6 @@
 Release History
 ===============
 
-Initial Release (YYYY-MM-DD)
+v0.1.0 (2022-12-14)
 ----------------------------
+- Initial Release
