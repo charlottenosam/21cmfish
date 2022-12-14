@@ -5,8 +5,8 @@
 .. image:: https://img.shields.io/travis/charlottenosam/21cmfish.svg
         :target: https://travis-ci.com/charlottenosam/21cmfish
         :alt: Pip
-.. image:: https://img.shields.io/pypi/v/21cmfish.svg
-        :target: https://pypi.python.org/pypi/21cmfish
+.. image:: https://img.shields.io/pypi/v/py21cmfish.svg
+        :target: https://pypi.org/project/py21cmfish/
         :alt: Pip
 .. image:: https://readthedocs.org/projects/21cmfish/badge/?version=latest
         :target: https://21cmfish.readthedocs.io/en/latest/?badge=latest
