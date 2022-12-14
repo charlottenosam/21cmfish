@@ -46,7 +46,7 @@ extensions = [
     'sphinx.ext.imgconverter'
 ]
 templates_path = ["_templates"]
-source_suffix = [".rst",".ipynb"]
+source_suffix = [".rst"]#,".ipynb"]
 master_doc = "index"
 
 project = "21cmfish"

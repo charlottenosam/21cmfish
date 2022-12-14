@@ -21,19 +21,15 @@ Dependencies
 The main dependency is `21cmFAST <https://github.com/21cmfast/21cmFAST/>`_.
 I *strongly* recommend you install ``21cmFAST`` first.
 
-Features
----------
-
-* TODO
 
 Documentation
 --------------
 
-See https://21cmfish.readthedocs.io
+See https://21cmfish.readthedocs.io for API documentation and a usage tutorial
 
 Acknowledging
 --------------
 
 If you find ``21cmfish`` useful in your research please cite:
 
-* TODO
+* Mason et al. 2022 (submitted)
