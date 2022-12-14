@@ -206,8 +206,7 @@ if flag_options['USE_ETHOS'] is True:
     # inv_k_peak = np.array([1e-8, 1e-6, 1e-4])
     # inv_k_peak = np.array([1e-8, 1e-6, 0.002, 0.003])
     # inv_k_peak = np.array([1e-5, 5e-5, 1e-4, 5e-4, 1e-3])
-    # inv_k_peak = np.array([1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 5e-5, 5e-4, 1e-3]) # test for convergence
-    inv_k_peak = np.array([7.5e-5, 1e-4, 2e-4, 3e-4, 4e-4]) # test for convergence
+    inv_k_peak = np.array([1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 5e-5, 5e-4, 1e-3]) # test for convergence
 #    inv_k_peak = np.array([1e-5, 5e-5, 5e-4]) # this was default for h_peak = 0?
     for h_peak in h_peaks:
         for inv_k in inv_k_peak:
