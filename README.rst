@@ -32,4 +32,4 @@ Acknowledging
 
 If you find ``21cmfish`` useful in your research please cite:
 
-* Mason et al. 2022 (submitted)
+* `Mason et al. 2022 <https://ui.adsabs.harvard.edu/abs/arXiv:2212.09797>`_ (submitted)
