@@ -40,7 +40,7 @@ setup(
     description="A python package for doing Fisher matrix analyses with 21cmFAST",
     long_description=readme,
     author="Charlotte Mason",
-    author_email='charlotte.mason@cfa.harvard.edu',
+    author_email='charlotte.mason@nbi.ku.dk',
     url='https://github.com/charlottenosam/21cmfish',
     python_requires='>={}'.format('.'.join(str(n) for n in min_version)),
     packages=find_packages(exclude=['docs', 'tests']),
