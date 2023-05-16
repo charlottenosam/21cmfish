@@ -113,6 +113,8 @@ logger.info(f'Using random_seed = {random_seed}')
 # ==============================================================================
 # Get config
 config_file = args.config_file
+assert os.path.exists(config_file), f'{config_file} does not exist!'
+
 config.read(config_file)
 logger.info(f'Running with {config.get("run","name")}...')
 
