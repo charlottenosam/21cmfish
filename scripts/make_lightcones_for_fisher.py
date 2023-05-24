@@ -1,5 +1,5 @@
 import py21cmfast as p21c
-import os
+import os, shutil
 import glob
 import numpy as np
 import time
@@ -273,13 +273,15 @@ else:
                 PF_file = PF.split('/')[-1]
                 linked_file = f'{output_dir_lc}/{PF_file}'
                 if not os.path.exists(linked_file):
-                    os.symlink(PF, linked_file)
+                    # os.symlink(PF, linked_file)
+                    shutil.copyfile(PF, linked_file)
 
         for IC in IC_files:
             IC_file = IC.split('/')[-1]
             linked_file = f'{output_dir_lc}/{IC_file}'
             if not os.path.exists(linked_file):
-                os.symlink(IC, linked_file)
+                # os.symlink(IC, linked_file)
+                shutil.copyfile(IC, linked_file)
         direc = output_dir_lc
         # else:
         #     direc = None
