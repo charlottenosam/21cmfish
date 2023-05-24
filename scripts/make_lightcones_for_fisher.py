@@ -290,16 +290,17 @@ else:
         logger.info(f'Will save lightcone to {lightcone_filename}')
 
         t1 = time.time()
+        logger.info(f'{user_params}')
 
         if not os.path.exists(f'{output_dir}{lightcone_filename}'):
-            logger.info(f'{user_params}')
+            
             lightcone = p21c.run_lightcone(
                                         redshift = min_redshift,
                                         max_redshift = max_redshift,
                                         lightcone_quantities=lightcone_quantities,
                                         global_quantities=global_quantities,
                                         init_box = initial_conditions,
-                                        user_params  = user_params,
+                                        user_params  = initial_conditions.user_params,
                                         flag_options = flag_options,
                                         astro_params = astro_params_run_all[astro_params_key],
                                         random_seed = random_seed,
