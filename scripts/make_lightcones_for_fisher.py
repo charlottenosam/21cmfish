@@ -248,6 +248,7 @@ else:
     IC_files = glob.glob(f'{output_dir}InitialConditions*')
 
     logger.info(f'Loaded or made initial conditions')
+    logger.info(f'{initial_conditions.user_params}')
 
     # Will not write more boxes
     # p21c.config['write'] = False
@@ -291,6 +292,7 @@ else:
         t1 = time.time()
 
         if not os.path.exists(f'{output_dir}{lightcone_filename}'):
+            logger.info(f'{user_params}')
             lightcone = p21c.run_lightcone(
                                         redshift = min_redshift,
                                         max_redshift = max_redshift,
