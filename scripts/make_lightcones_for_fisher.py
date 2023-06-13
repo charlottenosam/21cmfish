@@ -4,6 +4,7 @@ import glob
 import numpy as np
 import time
 from joblib import Parallel, delayed
+import faulthandler; faulthandler.enable()
 import argparse
 import configparser
 import multiprocessing
@@ -22,7 +23,9 @@ print(f"21cmFAST version is {p21c.__version__}")
 # Took ---- Finished making lightcones, took 15.86 hours ---- for ETHOS.
 # Took 11 mins to make PS
 #
-#
+# python scripts/make_lightcones_for_fisher.py 21cmFAST_config_files/Park19_mcmc_bestfit_Mturn.config --num_cores 2 --random_seed 12345 --dry_run
+# python scripts/make_lightcones_for_fisher.py 21cmFAST_config_files/EoS_mini_OPT.config --num_cores 2 --random_seed 12345 --dry_run
+
 # python scripts/make_lightcones_for_fisher.py 21cmFAST_config_files/ETHOS.config --num_cores 2 --h_PEAK 0 --random_seed $r
 # ==============================================================================
 # ==============================================================================
@@ -114,7 +117,6 @@ logger.info(f'Using random_seed = {random_seed}')
 # Get config
 config_file = args.config_file
 assert os.path.exists(config_file), f'{config_file} does not exist!'
-print(config_file)
 logger.info(f'Running {config_file}...')
 config.read(config_file)
 logger.info(f'Running with {config.get("run","name")}...')
@@ -182,9 +184,11 @@ astro_params_run_all[f'{dict_prefix}fid'] = astro_params_fid
 for param in astro_params_vary:
     p_fid = astro_params_fid[param]
 
-    # Make smaller for L_X
+    # Make smaller for L_X and M_turn
     if param == 'L_X':
         q = 0.001*vary_array
+    elif param == 'M_TURN':
+        q = 0.01*vary_array
     else:
         q = q_scale/100*vary_array
 
@@ -248,7 +252,6 @@ else:
     IC_files = glob.glob(f'{output_dir}InitialConditions*')
 
     logger.info(f'Loaded or made initial conditions')
-    logger.info(f'{initial_conditions.user_params}')
 
     # Will not write more boxes
     # p21c.config['write'] = False
@@ -273,15 +276,14 @@ else:
                 PF_file = PF.split('/')[-1]
                 linked_file = f'{output_dir_lc}/{PF_file}'
                 if not os.path.exists(linked_file):
-                    # os.symlink(PF, linked_file)
-                    shutil.copyfile(PF, linked_file)
+                    os.symlink(PF, linked_file)
 
         for IC in IC_files:
             IC_file = IC.split('/')[-1]
             linked_file = f'{output_dir_lc}/{IC_file}'
             if not os.path.exists(linked_file):
-                # os.symlink(IC, linked_file)
-                shutil.copyfile(IC, linked_file)
+                os.symlink(IC, linked_file)
+                # shutil.copyfile(IC, linked_file)
         direc = output_dir_lc
         # else:
         #     direc = None
@@ -292,7 +294,6 @@ else:
         logger.info(f'Will save lightcone to {lightcone_filename}')
 
         t1 = time.time()
-        logger.info(f'{user_params}')
 
         if not os.path.exists(f'{output_dir}{lightcone_filename}'):
             
@@ -331,12 +332,11 @@ else:
     t1 = time.time()
 
     if num_cores == 1:
-        print(astro_params_run_all.keys())
         for key in astro_params_run_all.keys():
             logger.info(f'Saved making lightcone for {key}')
             make_lightcone(key)
     else:
-        Parallel(n_jobs=num_cores)(delayed(make_lightcone)(key) for key in astro_params_run_all.keys())
+        Parallel(n_jobs=num_cores, max_nbytes=1e6)(delayed(make_lightcone)(key) for key in astro_params_run_all.keys())
 
     t2 = time.time()
     logger.info(f'---- Finished making lightcones, took {(t2-t1)/3600:.2f} hours')

@@ -733,7 +733,8 @@ class Parameter(object):
                                         label='1/k_PEAK^%.1f < %.1e' % (self.k_PEAK_order, theta[j]))
                 else:
                     deriv = np.gradient(PS, theta, axis=0)
-                    assert (deriv[1][~np.isnan(deriv[1])] == (PS[2][~np.isnan(deriv[1])]-PS[0][~np.isnan(deriv[1])])/(theta[2]-theta[0])).all(), 'two-sided derivative is wrong'
+                    check_deriv = (deriv[1][~np.isnan(deriv[1])]-(PS[2][~np.isnan(deriv[1])]-PS[0][~np.isnan(deriv[1])])/(theta[2]-theta[0]))
+                    assert (np.abs(check_deriv) < 1e-10).all(), 'two-sided derivative is wrong'
 
                 if self.k_HERA:
                     self.deriv_PS[cosmo_key][i] = deriv[1]
