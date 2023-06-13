@@ -336,7 +336,7 @@ else:
             logger.info(f'Saved making lightcone for {key}')
             make_lightcone(key)
     else:
-        Parallel(n_jobs=num_cores, max_nbytes=1e7)(delayed(make_lightcone)(key) for key in astro_params_run_all.keys())
+        Parallel(n_jobs=num_cores)(delayed(make_lightcone)(key) for key in astro_params_run_all.keys())
 
     t2 = time.time()
     logger.info(f'---- Finished making lightcones, took {(t2-t1)/3600:.2f} hours')
