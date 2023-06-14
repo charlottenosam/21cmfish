@@ -229,7 +229,7 @@ if 'ALPHA_ESC_-0.03' in astro_params_run_all:
     assert astro_params_run_all['ALPHA_ESC_-0.03']['ALPHA_ESC'] != astro_params_run_all['ALPHA_ESC_0.03']['ALPHA_ESC'],\
             'Parameters havent changed between fisher runs!!!'
 
-if 'ALPHA_STAR_MINI_-0.03' in astro_params_run_all:
+if 'ALPHA_STAR_MINI_-0.03' in astro_params_run_all and 'ALPHA_STAR_-0.03' in astro_params_run_all:
     assert astro_params_run_all['ALPHA_STAR_MINI_-0.03']['ALPHA_STAR_MINI'] != astro_params_run_all['ALPHA_STAR_-0.03']['ALPHA_STAR'],\
         'ALPHA_STAR and ALPHA_STAR_MINI messed up!!!'
 
